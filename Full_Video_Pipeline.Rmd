@@ -17,6 +17,8 @@ library(gtools)
 ```{r}
 WORKD = "C:\\Users\\Bvipe\\OneDrive - Walla Walla University\\Desktop\\Bowers_2025_Octopus_Vestibular"
 
+datelist_u = c("7_24","7_26","7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11","8_13","8_15","8_17")
+
 mantle_indecies = read.csv(paste0(WORKD,"\\Raw Data\\Octopus_Mantle_Measurements\\Mantle Indecies.csv"))
 
 start_end_frames = read.csv(paste0(WORKD,"\\Raw Data\\Path_Analysis_Start_End_Frames.csv"))
@@ -191,11 +193,8 @@ bod_l_speed = function(file_title,b_change,bearing_vecs,mant_index){
     ocnum = c("O",as.character(i),".csv")
     TF = str_detect(file_title, paste(ocnum, collapse = ""))
 
-    if (TF == TRUE){
-      m_dex = mant_index$INDEX[count]
-      break
+    m_dex = mant_index$INDEX[count]
     count =+ 1
-    }
   }
   
   len = length(b_change$speed)
@@ -227,7 +226,7 @@ bod_l_speed = function(file_title,b_change,bearing_vecs,mant_index){
 
 #MAIN LOOP FOR BEARING CHANGE (passed the date in two formats)
 ```{r}
-main_loop = function(DATE,DATE2,WORKD){
+main_loop = function(DATE,WORKD){
   #OCTOPUS
     #FIND FILES
   in_files_list = oc_get_file(WORKD,DATE)
@@ -268,21 +267,17 @@ main_loop = function(DATE,DATE2,WORKD){
 
 #Loop to itertively run the main loop for each date
 ```{r}
-date = c("7_24","7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11","8_13","8_15","8_17")
+for (i in 1:length(datelist_u)){
+  DATE = datelist_u[i]
 
-for (i in 1:length(date)){
-  DATE = date[i]
-  
   path = paste0(WORKD,"\\Processed Data\\Full Video Results")
   newfolder = DATE
   ifelse(!dir.exists(file.path(path, newfolder)), dir.create(file.path(path,newfolder)), FALSE)
   
-  main_loop(DATE,DATE2,WORKD)
+  main_loop(DATE,WORKD)
 }
-
-
 ```
-
-
 #WHY IS THE LAST LINE OF 7_24_O1 SO BIG??
+
+
 

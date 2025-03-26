@@ -195,7 +195,6 @@ path_deviance = function(DATE,date_batch,index){
   bear_movedir_dif_dif = c()
   for (bear in 1:length(bear_movedir_dif)){
     dif = bear_movedir_dif[bear] - bear_movedir_dif[bear - 1]
-    #print(paste0("dif",dif))
     bear_movedir_dif_dif = c(bear_movedir_dif_dif, dif)
   }
     
