@@ -1,0 +1,191 @@
+---
+title: "Statistical Analysis"
+author: "Brandon Bowers"
+date: "2025-03-19"
+output: html_document
+---
+```{r}
+ library(nlme)
+ library(car)
+```
+
+
+```{r}
+WD = "C:\\Users\\Bvipe\\OneDrive - Walla Walla University\\Desktop\\Bowers_2025_Octopus_Vestibular"
+
+datelist_u = c("7_24","7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11","8_13","8_15","8_17")
+```
+
+#Read in Trial-type Log
+```{r}
+Trial_type_log = read.csv("C:\\Users\\Bvipe\\OneDrive - Walla Walla University\\Desktop\\Bowers_2025_Octopus_Vestibular\\Raw Data\\Trial Type.csv")
+```
+
+```{r}
+FV_get_file = function(WD,d){ 
+  wd = c(WD,"Processed Data","Full Video Results",d)
+  wd_path = stringr::str_c(wd, collapse = "/")
+  in_files_list = list.files(wd_path, pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+  return(in_files_list)
+}
+```
+
+```{r}
+PA_get_file = function(WD){ 
+  wd = c(WD,"Processed Data\\Path Analysis Results")
+  wd_path = stringr::str_c(wd, collapse = "/")
+  in_files_list = list.files(wd_path, pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+  return(in_files_list)
+}
+```
+
+#Create a table from the the processed data that makes all effects accessible. FULL VID RESULTS
+```{r}
+Date = c()
+OC_ID = c()
+Trial_Type = c()
+Avg_Speed_Per_Bodylength = c()
+Avg_Bearing_Change = c()
+Avg_Bearing_vs_Heading_FV = c()
+
+for (d in datelist_u){
+  FV_files = FV_get_file(WD,d)
+  for (f in FV_files){
+    Date = c(Date,d)
+    
+    oc = unlist(strsplit(f,".csv"))[1]
+    oc = unlist(strsplit(oc,paste0("O")))[2]
+    OC_ID = c(OC_ID,oc)
+    
+    curr_data = read.csv(paste0(WD,"\\Processed Data\\Full Video Results\\",d,"\\",f))
+    
+    #Find average speed/bodylength and append it to master list
+    avg_SPB = sum(curr_data$Speed_per_Bodylength) / length(curr_data$Speed_per_Bodylength)
+    Avg_Speed_Per_Bodylength = c(Avg_Speed_Per_Bodylength,avg_SPB)
+    
+    #Find average bearing change
+    avg_BC = sum(curr_data$Bearing_Change) / length(curr_data$Bearing_Change)
+    Avg_Bearing_Change = c(Avg_Bearing_Change,avg_BC)
+    
+    #Find avg bearing vs heading
+    avg_BvH = sum(curr_data$Bearing_Movedir_Dif) / length(curr_data$Bearing_Movedir_Dif)
+    Avg_Bearing_vs_Heading_FV = c(Avg_Bearing_vs_Heading_FV,avg_BvH)
+    
+    for (t in 1:length(Trial_type_log$Trial.Type)){
+      if (Trial_type_log$Date[t] == d & as.character(Trial_type_log$OC_ID[t]) == oc){
+        Trial_Type = c(Trial_Type,Trial_type_log$Trial.Type[t])
+      }
+    }
+  }
+}
+
+FV_master_set = data.frame(Date,OC_ID,Trial_Type, Avg_Speed_Per_Bodylength,Avg_Bearing_Change,Avg_Bearing_vs_Heading_FV)
+
+```
+
+#Create a table from the the processed data that makes all effects accessible. PATH ANALYSIS RESULTS
+```{r}
+PA_files = PA_get_file(WD)
+Date = c()
+OC_ID = c()
+Trial_Type = c()
+Movement_Type = c()
+Distance_of_Movement = c()
+Duration = c()
+Speed = c()
+Speed_per_Bodylength = c()
+Bearing_Change = c()
+Avg_Bearing_vs_Heading = c()
+Avg_Bearing_vs_Heading_Change = c()
+
+for (fi in PA_files){
+  current_data = read.csv(paste0(WD,"\\Processed Data\\Path Analysis Results\\",fi))
+  Date = c(Date,current_data$date)
+  OC_ID = c(OC_ID,current_data$oc_ID)
+  Movement_Type = c(Movement_Type, current_data$movement_type)
+  Distance_of_Movement = c(Distance_of_Movement ,current_data$total_movement_dis)
+  Duration = c(Duration, current_data$duration)
+  Speed = c(Speed,current_data$speed)
+  Speed_per_Bodylength = c(Speed_per_Bodylength, current_data$speed_per_bodylength)
+  Bearing_Change = c(Bearing_Change, current_data$angle_dev)
+  Avg_Bearing_vs_Heading = c(Avg_Bearing_vs_Heading, current_data$avg_bear_head_dif)
+  Avg_Bearing_vs_Heading_Change = c(Avg_Bearing_vs_Heading_Change, current_data$avg_bear_head_dif_dif)
+  
+  count = 0
+  for (t in 1:length(Trial_type_log$Trial.Type)){
+    if (Trial_type_log$Date[t] == current_data$date[1]){
+      for (l in 1:length(current_data$oc_ID)){
+        if (current_data$oc_ID[l] == Trial_type_log$OC_ID[t]){
+          Trial_Type = c(Trial_Type,Trial_type_log$Trial.Type[t])
+          count = count + 1
+        }
+      }
+    }
+  }
+}
+
+PA_master_set = data.frame(Date,OC_ID,Trial_Type,Movement_Type,Distance_of_Movement,Duration,Speed,Speed_per_Bodylength,Bearing_Change,Avg_Bearing_vs_Heading,Avg_Bearing_vs_Heading_Change)
+```
+
+########
+#Run mixed effects model#
+########
+
+#Make the relationship between relevant variables linear by taking their logs.
+```{r}
+
+```
+
+#Set orthagonal contrasts
+```{r}
+
+```
+
+#Use a Type III sum of squares
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+bearing_change.lme=lme(abs(Bearing_Change)~Trial_Type,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+bearing_change.lme=lme(abs(Speed)~Trial_Type,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading)~Trial_Type,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading_Change)~Trial_Type,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+bearing_change.lme=lme(Avg_Speed_Per_Bodylength~Trial_Type,random=~1|OC_ID, 
+                       correlation=corAR1(form= ~Date|OC_ID),
+                       data=FV_master_set)
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
