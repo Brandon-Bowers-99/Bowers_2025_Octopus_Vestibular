@@ -34,7 +34,8 @@ OC_NUMS = c(1,2,4,5,7,8,9,10,11,12,13,14,16,17,18,19)
 ```{r}
 oc_get_file = function(WD,folder_date){ 
   wd = c(WD,"Raw Data\\Raw_Octopus_Label_Coordinates",folder_date)
-  wd_path = stringr::str_c(wd, collapse = "/")
+  wd_path = str
+  +++++++++++ingr::str_c(wd, collapse = "/")
   in_files_list = list.files(wd_path, pattern = NULL, all.files = FALSE,
            full.names = FALSE, recursive = FALSE,
            ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)

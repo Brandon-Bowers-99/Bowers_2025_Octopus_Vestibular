@@ -14,9 +14,8 @@ library(gtools)
 
 #SET LOCATION OF DATA HERE
 ```{r}
-DATE = "7_24"
-datelist = c("7/24","7/28","7/30","8/1","8/3","8/5","8/7","8/9","8/11","8/13","8/15","8/17")
-DATE2 = "7/24"
+datelist_u = c("7_24","7_26","7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11","8_13","8_15","8_17")
+datelist = c("7/24","7/26","7/28","7/30","8/1","8/3","8/5","8/7","8/9","8/11","8/13","8/15","8/17")
 
 WORKD = "C:\\Users\\Bvipe\\OneDrive - Walla Walla University\\Desktop\\Bowers_2025_Octopus_Vestibular"
 
@@ -211,44 +210,52 @@ path_deviance = function(DATE,date_batch,index){
 ##currently logging 2 dif_difs
 
 ```{r}
-date_batch = c()
-
-date = c()
-movement_type = c()
-oc_ID = c()
-duration = c()
-total_movement_dis = c()
-angle_dev = c()
-avg_bear_head_dif = c()
-avg_bear_head_dif_dif = c()
-
-#make a list of the indecies in S_E_frames that relate to events from current date
-for (i in 1:length(start_end_frames$DATE)){
-  if (start_end_frames$DATE[i] == DATE2){
-    date_batch = c(date_batch,i)
+per_date_loop = function(this_date,this_date_slash){
+  date_batch = c()
+  
+  date = c()
+  movement_type = c()
+  oc_ID = c()
+  duration = c()
+  total_movement_dis = c()
+  angle_dev = c()
+  avg_bear_head_dif = c()
+  avg_bear_head_dif_dif = c()
+  
+  #make a list of the indecies in S_E_frames that relate to events from current date
+  for (i in 1:length(start_end_frames$DATE)){
+    if (start_end_frames$DATE[i] == this_date_slash){
+      date_batch = c(date_batch,i)
+    }
   }
+  
+  #for each index: create a table of (date,movement_type,oc_num,tot_dis,ang_dev)
+  for (j in 1:length(date_batch)){
+    if (start_end_frames$MOVEMENT.TYPE[date_batch[j]] == "1"|start_end_frames$MOVEMENT.TYPE[date_batch[j]] == "2"){
+      #returns (tot_move_dis,angle_dev) 
+      path_dev = path_deviance(this_date,date_batch,j)
+      
+      total_movement_dis = c(total_movement_dis,path_dev[1])
+      angle_dev = c(angle_dev,path_dev[2])
+      oc_ID = c(oc_ID,start_end_frames$OCNUM[date_batch[j]])
+      date = c(date,this_date)
+      movement_type = c(movement_type,start_end_frames$MOVEMENT.TYPE[date_batch[j]])
+      duration = c(duration,path_dev[3])
+      avg_bear_head_dif = c(avg_bear_head_dif,path_dev[4])
+      avg_bear_head_dif_dif = c(avg_bear_head_dif_dif,path_dev[5])
+      
+      path_analysis_results = data.frame(date,oc_ID,movement_type,total_movement_dis,duration,angle_dev,avg_bear_head_dif,avg_bear_head_dif_dif)  
+     }
+  
+  }
+  
+  write.csv(path_analysis_results,paste0(WORKD,"\\Processed Data\\Path Analysis Results\\PA_Results_",this_date,".csv"))
 }
+```
 
-#for each index: create a table of (date,movement_type,oc_num,tot_dis,ang_dev)
-for (j in 1:length(date_batch)){
-  if (start_end_frames$MOVEMENT.TYPE[date_batch[j]] == "1"|start_end_frames$MOVEMENT.TYPE[date_batch[j]] == "2"){
-    #returns (tot_move_dis,angle_dev) 
-    path_dev = path_deviance(DATE,date_batch,j)
-    
-    total_movement_dis = c(total_movement_dis,path_dev[1])
-    angle_dev = c(angle_dev,path_dev[2])
-    oc_ID = c(oc_ID,start_end_frames$OCNUM[date_batch[j]])
-    date = c(date,DATE)
-    movement_type = c(movement_type,start_end_frames$MOVEMENT.TYPE[date_batch[j]])
-    duration = c(duration,path_dev[3])
-    avg_bear_head_dif = c(avg_bear_head_dif,path_dev[4])
-    avg_bear_head_dif_dif = c(avg_bear_head_dif_dif,path_dev[5])
-    
-    path_analysis_results = data.frame(date,oc_ID,movement_type,total_movement_dis,duration,angle_dev,avg_bear_head_dif,avg_bear_head_dif_dif)  
-   }
-
+```{r}
+for (d in 1:length(datelist_u)){
+  per_date_loop(datelist_u[d],datelist[d])
 }
-
-write.csv(path_analysis_results,paste0(WORKD,"\\Processed Data\\Path Analysis Results\\PA_Results_",DATE,".csv"))
 ```
 
