@@ -43,6 +43,29 @@ PA_get_file = function(WD){
 }
 ```
 
+```{r}
+FV_get_file_DLC = function(WD,d){ 
+  wd = c(WD,"Processed Data","Full Video Results DLC",d)
+  wd_path = stringr::str_c(wd, collapse = "/")
+  in_files_list = list.files(wd_path, pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+  return(in_files_list)
+}
+```
+
+```{r}
+PA_get_file_DLC = function(WD){ 
+  wd = c(WD,"Processed Data\\Path Analysis Results DLC")
+  wd_path = stringr::str_c(wd, collapse = "/")
+  in_files_list = list.files(wd_path, pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+  return(in_files_list)
+}
+```
+
+
 #Create a table from the the processed data that makes all effects accessible. FULL VID RESULTS
 ```{r}
 Date = c()
@@ -129,6 +152,94 @@ for (fi in PA_files){
 }
 
 PA_master_set = data.frame(Date,OC_ID,Trial_Type,Movement_Type,Distance_of_Movement,Duration,Speed,Speed_per_Bodylength,Bearing_Change,Avg_Bearing_vs_Heading,Avg_Bearing_vs_Heading_Change)
+```
+
+#Create a table from the the processed data that makes all effects accessible. FULL VID RESULTS DLC
+```{r}
+Date = c()
+OC_ID = c()
+Trial_Type = c()
+Avg_Speed_Per_Bodylength = c()
+Avg_Bearing_Change = c()
+Avg_Bearing_vs_Heading_FV = c()
+
+for (d in datelist_u){
+  FV_files_DLC = FV_get_file_DLC(WD,d)
+  for (f in FV_files_DLC){
+    Date = c(Date,d)
+    
+    oc = unlist(strsplit(f," - Made with ClipchampDLC_Resnet50_Fin_OCEEM_Attempt_1_9Jan9shuffle1_snapshot_180.csv"))[1]
+    oc = unlist(strsplit(oc,paste0("O")))[2]
+    OC_ID = c(OC_ID,oc)
+    
+    curr_data = read.csv(paste0(WD,"\\Processed Data\\Full Video Results DLC\\",d,"\\",f))
+    
+    #Find average speed/bodylength and append it to master list
+    avg_SPB = sum(curr_data$Speed_per_Bodylength) / length(curr_data$Speed_per_Bodylength)
+    Avg_Speed_Per_Bodylength = c(Avg_Speed_Per_Bodylength,avg_SPB)
+    
+    #Find average bearing change
+    avg_BC = sum(curr_data$Bearing_Change) / length(curr_data$Bearing_Change)
+    Avg_Bearing_Change = c(Avg_Bearing_Change,avg_BC)
+    
+    #Find avg bearing vs heading
+    avg_BvH = sum(curr_data$Bearing_Movedir_Dif) / length(curr_data$Bearing_Movedir_Dif)
+    Avg_Bearing_vs_Heading_FV = c(Avg_Bearing_vs_Heading_FV,avg_BvH)
+    
+    for (t in 1:length(Trial_type_log$Trial.Type)){
+      if (Trial_type_log$Date[t] == d & as.character(Trial_type_log$OC_ID[t]) == oc){
+        Trial_Type = c(Trial_Type,Trial_type_log$Trial.Type[t])
+      }
+    }
+  }
+}
+
+FV_DLC_master_set = data.frame(Date,OC_ID,Trial_Type, Avg_Speed_Per_Bodylength,Avg_Bearing_Change,Avg_Bearing_vs_Heading_FV)
+
+```
+
+#Create a table from the the processed data that makes all effects accessible. PATH ANALYSIS RESULTS DLC
+```{r}
+PA_files_DLC = PA_get_file_DLC(WD)
+Date = c()
+OC_ID = c()
+Trial_Type = c()
+Movement_Type = c()
+Distance_of_Movement = c()
+Duration = c()
+Speed = c()
+Speed_per_Bodylength = c()
+Bearing_Change = c()
+Avg_Bearing_vs_Heading = c()
+Avg_Bearing_vs_Heading_Change = c()
+
+for (fi in PA_files_DLC){
+  current_data = read.csv(paste0(WD,"\\Processed Data\\Path Analysis Results DLC\\",fi))
+  Date = c(Date,current_data$date)
+  OC_ID = c(OC_ID,current_data$oc_ID)
+  Movement_Type = c(Movement_Type, current_data$movement_type)
+  Distance_of_Movement = c(Distance_of_Movement ,current_data$total_movement_dis)
+  Duration = c(Duration, current_data$duration)
+  Speed = c(Speed,current_data$speed)
+  Speed_per_Bodylength = c(Speed_per_Bodylength, current_data$speed_per_bodylength)
+  Bearing_Change = c(Bearing_Change, current_data$angle_dev)
+  Avg_Bearing_vs_Heading = c(Avg_Bearing_vs_Heading, current_data$avg_bear_head_dif)
+  Avg_Bearing_vs_Heading_Change = c(Avg_Bearing_vs_Heading_Change, current_data$avg_bear_head_dif_dif)
+  
+  count = 0
+  for (t in 1:length(Trial_type_log$Trial.Type)){
+    if (Trial_type_log$Date[t] == current_data$date[1]){
+      for (l in 1:length(current_data$oc_ID)){
+        if (current_data$oc_ID[l] == Trial_type_log$OC_ID[t]){
+          Trial_Type = c(Trial_Type,Trial_type_log$Trial.Type[t])
+          count = count + 1
+        }
+      }
+    }
+  }
+}
+
+PA_DLC_master_set = data.frame(Date,OC_ID,Trial_Type,Movement_Type,Distance_of_Movement,Duration,Speed,Speed_per_Bodylength,Bearing_Change,Avg_Bearing_vs_Heading,Avg_Bearing_vs_Heading_Change)
 ```
 
 ########

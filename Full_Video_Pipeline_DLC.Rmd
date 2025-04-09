@@ -1,7 +1,7 @@
 ---
-title: "Full_Video_Pipeline_Manual"
+title: "Full_Video_DLC"
 author: "Brandon Bowers"
-date: "2025-03-13"
+date: "2025-04-07"
 output: html_document
 ---
 
@@ -32,8 +32,8 @@ OC_NUMS = c(1,2,4,5,7,8,9,10,11,12,13,14,16,17,18,19)
 
 #OCTOPUS Get files
 ```{r}
-oc_get_file = function(WD,folder_date){ 
-  wd = c(WD,"Raw Data\\Raw_Octopus_Label_Coordinates",folder_date)
+oc_get_file_DLC = function(WD,folder_date){ 
+  wd = c(WD,"Raw Data\\Raw_Octopus_DLC_Label_Coordinates",folder_date)
   wd_path = stringr::str_c(wd, collapse = "/")
   in_files_list = list.files(wd_path, pattern = NULL, all.files = FALSE,
            full.names = FALSE, recursive = FALSE,
@@ -44,8 +44,8 @@ oc_get_file = function(WD,folder_date){
 
 #Read files
 ```{r}
-oc_read_file = function(WD,folder_date,f){
-  wd = c(WD,"Raw Data\\Raw_Octopus_Label_Coordinates",folder_date,f)
+oc_read_file_DLC = function(WD,folder_date,f){
+  wd = c(WD,"Raw Data\\Raw_Octopus_DLC_Label_Coordinates",folder_date,f)
   fullpath = stringr::str_c(wd, collapse = "/")
   dat_tab = read.csv(fullpath, stringsAsFactors=FALSE)
   C_S_V = dat_tab
@@ -55,33 +55,22 @@ oc_read_file = function(WD,folder_date,f){
 
 #OCTOPUS: Organize coordinates
 ```{r}
-oc_organize_coordinates = function(dat_tab){
+oc_organize_coordinates_DLC = function(dat_tab){
   len = nrow(dat_tab)
   
-  frame_raw = dat_tab[3:len,3]
-  frame = c()
-  for (i in 1:length(frame_raw)){
-    f = (unlist(strsplit(frame_raw[i], split='.jpg', fixed=TRUE))[1])
-    frame = c(frame,f)
-  }
-  
-  left_eye_x = dat_tab[3:len,4]
-  left_eye_y = dat_tab[3:len,5]
-  #left_eye_likelihood = dat_tab[3:len,4]
-  left_eye = data.frame(left_eye_x,left_eye_y)
-  
-  right_eye_x = dat_tab[3:len,6]
-  right_eye_y = dat_tab[3:len,7]
-  #right_eye_likelihood = dat_tab[3:len,7]
+  frame = c(dat_tab[3:len,1])
 
-  right_eye = data.frame(right_eye_x,right_eye_y)
+  left_eye_x = dat_tab[3:len,2]
+  left_eye_y = dat_tab[3:len,3]
+  left_eye_likelihood = dat_tab[3:len,4]
+  left_eye = data.frame(left_eye_x,left_eye_y,left_eye_likelihood)
   
-  MT_x = dat_tab[3:len,8]
-  MT_y = dat_tab[3:len,9]
-  #MT_likelihood = dat_tab[3:len,10]
-  mantle_tip = data.frame(MT_x,MT_y)
-  
-  coors = data.frame(frame,left_eye,right_eye,mantle_tip)
+  right_eye_x = dat_tab[3:len,5]
+  right_eye_y = dat_tab[3:len,6]
+  right_eye_likelihood = dat_tab[3:len,7]
+  right_eye = data.frame(right_eye_x,right_eye_y,right_eye_likelihood)
+
+  coors = data.frame(frame,left_eye,right_eye)
   coors$frame = as.numeric(as.character(coors$frame))
   ordered_coors = coors[order(coors$frame),]
   
@@ -229,14 +218,14 @@ bod_l_speed = function(file_title,b_change,bearing_vecs,mant_index){
 main_loop = function(DATE,WORKD){
   #OCTOPUS
     #FIND FILES
-  in_files_list = oc_get_file(WORKD,DATE)
+  in_files_list = oc_get_file_DLC(WORKD,DATE)
   #print(in_files_list)
   
     #READ FILES
   for (i in in_files_list) {
-    raw_csv = oc_read_file(WORKD,DATE,i)
+    raw_csv = oc_read_file_DLC(WORKD,DATE,i)
   
-    coor_temp = oc_organize_coordinates(raw_csv)
+    coor_temp = oc_organize_coordinates_DLC(raw_csv)
     
     bearing_vecs = oc_stat_bearing(coor_temp)  #HOW TO DEAL WITH GAPS OF MISSING FRAMES
     
@@ -260,7 +249,7 @@ main_loop = function(DATE,WORKD){
     Processed = data.frame(Move_Dir,Bearing_Change,Bearing_Move_Diff,Speed_Pixels,Speed_per_MI)
     
     #write.csv(b_change,paste0(WORKD,"\\Processed Data\\Full Video Results\\",DATE,"\\Raw_",i))
-    write.csv(b_change_plu_s_peed,paste0(WORKD,"\\Processed Data\\Full Video Results\\",DATE,"\\Processed_",i))
+    write.csv(b_change_plu_s_peed,paste0(WORKD,"\\Processed Data\\Full Video Results DLC\\",DATE,"\\Processed_",i))
   }
 }
 ```
@@ -270,14 +259,10 @@ main_loop = function(DATE,WORKD){
 for (i in 1:length(datelist_u)){
   DATE = datelist_u[i]
 
-  path = paste0(WORKD,"\\Processed Data\\Full Video Results")
+  path = paste0(WORKD,"\\Processed Data\\Full Video Results DLC")
   newfolder = DATE
   ifelse(!dir.exists(file.path(path, newfolder)), dir.create(file.path(path,newfolder)), FALSE)
   
   main_loop(DATE,WORKD)
 }
 ```
-
-
-
-
