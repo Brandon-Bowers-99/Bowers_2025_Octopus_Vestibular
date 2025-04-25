@@ -269,7 +269,7 @@ main_loop = function(DATE,WORKD){
 ```{r}
 for (i in 1:length(datelist_u)){
   DATE = datelist_u[i]
-
+  print(DATE)
   path = paste0(WORKD,"\\Processed Data\\Full Video Results")
   newfolder = DATE
   ifelse(!dir.exists(file.path(path, newfolder)), dir.create(file.path(path,newfolder)), FALSE)

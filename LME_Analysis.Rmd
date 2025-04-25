@@ -6,14 +6,16 @@ output: html_document
 ---
 ```{r}
  library(nlme)
+ library(lme4)
  library(car)
+ library(tidyverse)
+ library(ggplot2)
 ```
-
 
 ```{r}
 WD = "C:\\Users\\Bvipe\\OneDrive - Walla Walla University\\Desktop\\Bowers_2025_Octopus_Vestibular"
 
-datelist_u = c("7_24","7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11","8_13","8_15","8_17")
+datelist_u = c("7_24","7_26","7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11","8_13","8_15","8_17")
 ```
 
 #Read in Trial-type Log
@@ -71,6 +73,7 @@ PA_get_file_DLC = function(WD){
 Date = c()
 OC_ID = c()
 Trial_Type = c()
+Duration = c()
 Avg_Speed_Per_Bodylength = c()
 Avg_Bearing_Change = c()
 Avg_Bearing_vs_Heading_FV = c()
@@ -86,6 +89,15 @@ for (d in datelist_u){
     
     curr_data = read.csv(paste0(WD,"\\Processed Data\\Full Video Results\\",d,"\\",f))
     
+    Time_to_crab = read.csv(paste0(WD,"\\Raw Data\\Time_to_crab.csv"))
+    for (i in 1:length(Time_to_crab$Date)){
+      if (Time_to_crab$Date[i] == d){
+        if (as.character(Time_to_crab$OC_ID[i]) == oc){
+            Duration = c(Duration,Time_to_crab$Time[i])
+        }
+      }
+    }
+
     #Find average speed/bodylength and append it to master list
     avg_SPB = sum(curr_data$Speed_per_Bodylength) / length(curr_data$Speed_per_Bodylength)
     Avg_Speed_Per_Bodylength = c(Avg_Speed_Per_Bodylength,avg_SPB)
@@ -106,8 +118,8 @@ for (d in datelist_u){
   }
 }
 
-FV_master_set = data.frame(Date,OC_ID,Trial_Type, Avg_Speed_Per_Bodylength,Avg_Bearing_Change,Avg_Bearing_vs_Heading_FV)
-
+FV_master_set = data.frame(Date,OC_ID,Trial_Type, Duration, Avg_Speed_Per_Bodylength,Avg_Bearing_Change,Avg_Bearing_vs_Heading_FV)
+write.csv(FV_master_set,paste0(WD,"\\Processed Data\\FV_Master_Set.csv"))
 ```
 
 #Create a table from the the processed data that makes all effects accessible. PATH ANALYSIS RESULTS
@@ -124,6 +136,7 @@ Speed_per_Bodylength = c()
 Bearing_Change = c()
 Avg_Bearing_vs_Heading = c()
 Avg_Bearing_vs_Heading_Change = c()
+Avg_Directness_Difference = c()
 
 for (fi in PA_files){
   current_data = read.csv(paste0(WD,"\\Processed Data\\Path Analysis Results\\",fi))
@@ -137,6 +150,7 @@ for (fi in PA_files){
   Bearing_Change = c(Bearing_Change, current_data$angle_dev)
   Avg_Bearing_vs_Heading = c(Avg_Bearing_vs_Heading, current_data$avg_bear_head_dif)
   Avg_Bearing_vs_Heading_Change = c(Avg_Bearing_vs_Heading_Change, current_data$avg_bear_head_dif_dif)
+  Avg_Directness_Difference = c(Avg_Directness_Difference, current_data$avg_head_vs_crab)
   
   count = 0
   for (t in 1:length(Trial_type_log$Trial.Type)){
@@ -151,7 +165,8 @@ for (fi in PA_files){
   }
 }
 
-PA_master_set = data.frame(Date,OC_ID,Trial_Type,Movement_Type,Distance_of_Movement,Duration,Speed,Speed_per_Bodylength,Bearing_Change,Avg_Bearing_vs_Heading,Avg_Bearing_vs_Heading_Change)
+PA_master_set = data.frame(Date,OC_ID,Trial_Type,Movement_Type,Distance_of_Movement,Duration,Speed,Speed_per_Bodylength,Bearing_Change,Avg_Bearing_vs_Heading,Avg_Bearing_vs_Heading_Change,Avg_Directness_Difference)
+write.csv(PA_master_set,paste0(WD,"\\Processed Data\\PA_Master_Set.csv"))
 ```
 
 #Create a table from the the processed data that makes all effects accessible. FULL VID RESULTS DLC
@@ -246,57 +261,350 @@ PA_DLC_master_set = data.frame(Date,OC_ID,Trial_Type,Movement_Type,Distance_of_M
 #Run mixed effects model#
 ########
 
-#Make the relationship between relevant variables linear by taking their logs.
-```{r}
+#Analyzing Path Analysis Data
+##############################
 
-```
-
-#Set orthagonal contrasts
-```{r}
-
-```
-
-#Use a Type III sum of squares
+#Movment type over time
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
-bearing_change.lme=lme(abs(Bearing_Change)~Trial_Type,random=~1|OC_ID,
+dates.ex=strptime(PA_master_set$Date,"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(Movement_Type~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set)
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+
+predict(bearing_change.lme, PA_master_set)
+
+p <- ggplot(PA_master_set, aes(x = NewDates, y = Movement_Type, colour = Trial_Type)) +
+  geom_point(size=3) +
+  geom_line(aes(y = predict(bearing_change.lme)),size=1) 
+print(p)
+
+```
+
+#Bearing change, Movement Type == 1 (Shouldn't be applicable, because bearing change only calculates first to last frame of movement: ie for jetting)
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 1],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Bearing_Change)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+print(bearing_change.lme)
+```
+```{r}
+plot(abs(Bearing_Change)~NewDates[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4],
+     data=PA_master_set[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4,],
+     log="y",
+     ylim=range(abs(PA_master_set$Bearing_Change[PA_master_set$Movement_Type==1])),
+     pch=21,bg="red"
+     )
+points(abs(Bearing_Change)~NewDates[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1],
+     data=PA_master_set[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1,],
+     pch=21,bg="blue")
+unique(PA_master_set$Trial_Type)
+class(NewDates)
+
+test.dates=c(
+range(NewDates[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4],na.rm = T),
+range(NewDates[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1],na.rm = T)
+)
+
+predict.data=data.frame(Trial_Type=as.factor(rep(unique(PA_master_set$Trial_Type),2)),NewDates=c(0,0,8,24))
+
+predict.data$predict=predict(bearing_change.lme,newdata = predict.data,level=0)
+predict.data
+
+```
+```{r}
+plot(bearing_change.lme)
+```
+
+
+#Bearing change, Movement Type == 2
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 2],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Bearing_Change)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==2,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+
+prediction = predict(bearing_change.lme, PA_master_set[PA_master_set$Movement_Type==2,])
+
+p <- ggplot(PA_master_set[PA_master_set$Movement_Type==2,], aes(x = NewDates, y = Movement_Type, color = Trial_Type)) +
+  geom_line(aes(y = prediction),size=1) 
+print(p)
+```
+```{r}
+
+```
+
+
+#Avg Directness Difference (movement type 1)
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 1],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+
+bearing_change.lme=lme(abs(Avg_Directness_Difference)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+
+```
+
+#Avg Directness Difference (movement type 2)
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 2],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Avg_Directness_Difference)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==2,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+
+#Avg speed per body length, movement type 1
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 1],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Speed_per_Bodylength)~Trial_Type*NewDates,random=~1|OC_ID,
                        data=PA_master_set[PA_master_set$Movement_Type==1,])
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#Avg speed per body length, movement type 2
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
-bearing_change.lme=lme(abs(Speed)~Trial_Type,random=~1|OC_ID,
-                       data=PA_master_set[PA_master_set$Movement_Type==1,])
-bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
-bearing_change.ANOVA
-```
-```{r}
-PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 2],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
 
-bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading)~Trial_Type,random=~1|OC_ID,
-                       data=PA_master_set[PA_master_set$Movement_Type==1,])
-bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
-bearing_change.ANOVA
-```
-```{r}
-PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
-
-bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading_Change)~Trial_Type,random=~1|OC_ID,
-                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.lme=lme(abs(Speed_per_Bodylength)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==2,])
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
 
+#Avg Bearing vs Heading, movement type == 1
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 1],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+#Avg Bearing vs Heading, movement type == 2
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 2],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==2,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+#Average Heading vs Bearing Change, Movement Type == 1
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 1],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading_Change)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+#Average Heading vs Bearing Change, Movement Type == 2
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 2],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading_Change)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==2,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+#Duration, Movement Type ==  1
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 1],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Duration)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==1,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+#Duration, Movement Type ==  2
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+Pre_TT_1 = c()
+Pre_TT_2 = c()
+for (i in 1:length(NewDates)){
+  Pre_TT_1 = c(Pre_TT_1, 1)
+  Pre_TT_2 = c(Pre_TT_2, 2)
+}
+
+dates.ex=strptime(PA_master_set$Date[Movement_Type == 2],"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(abs(Duration)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type==2,])
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+predict(bearing_change.lme, newdata = data.frame(NewDates = c(NewDates),Trial_Type = c(Pre_TT_1)))
+```
+
+#################
+#FULL VIDEO ANALYSIS
+#################
+#Duration
 ```{r}
 FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
 
+dates.ex=strptime(FV_master_set$Date,"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+FV_master_set$NewDates=as.numeric(NewDates)
+
+#FV_master_set$Duration = as.numeric(FV_master_set$Duration)
+bearing_change.lme=lme(Duration~Trial_Type,random=~1|OC_ID, 
+                       correlation=corAR1(form= ~NewDates|OC_ID),
+                       data=FV_master_set)
+
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+#Avg Speed per Body Length
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+dates.ex=strptime(FV_master_set$Date,"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
 bearing_change.lme=lme(Avg_Speed_Per_Bodylength~Trial_Type,random=~1|OC_ID, 
-                       correlation=corAR1(form= ~Date|OC_ID),
+                       correlation=corAR1(form= ~NewDates|OC_ID),
                        data=FV_master_set)
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
+```
+
+#Avg Bearing Change
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+dates.ex=strptime(FV_master_set$Date,"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(Avg_Bearing_Change~Trial_Type,random=~1|OC_ID, 
+                       correlation=corAR1(form= ~NewDates|OC_ID),
+                       data=FV_master_set)
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+#Avg Bearing vs heading
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+dates.ex=strptime(FV_master_set$Date,"%m_%d")
+NewDates = difftime(dates.ex,min(dates.ex),units="day")
+
+bearing_change.lme=lme(Avg_Bearing_vs_Heading_FV~Trial_Type,random=~1|OC_ID, 
+                       correlation=corAR1(form= ~NewDates|OC_ID),
+                       data=FV_master_set)
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+##Power Analysis
+```{r}
+library(compute.es)
+library(pwr)
+```
+
+```{r}
+mean()
+```
+
+```{r}
+ control.mean= 
+ control.sd= 
+ treat.mean=4.55-(4.55*.2)
+ treat.sd= 
+```
+
+```{r}
+ eff=mes(treat.mean,control.mean,treat.sd,control.sd,10,10)
+```
+
+```{r}
+pwr.t.test(d=-0.51,sig.level=0.05,power=0.8,type="paired",alternative="less")
+```
+
+
+###
+#Finding means
+###
+#Full video: Avg Speed per Body Length means: Spun and Unspun
+```{r}
+#FV avgspeedpbl
+
+U_AVGS = c()
+S_AVGS = c()
+
+for (ro in 1:length(FV_master_set$Avg_Speed_Per_Bodylength)){
+  if (FV_master_set$Trial_Type[ro] == "1"){
+    S_AVGS = c(S_AVGS, FV_master_set$Avg_Speed_Per_Bodylength[ro])
+  }
+  else if (FV_master_set$Trial_Type[ro] == "4"){
+    U_AVGS = c(U_AVGS, FV_master_set$Avg_Speed_Per_Bodylength[ro])
+  }
+}
+
+U_mean = mean(U_AVGS)
+S_mean = mean(S_AVGS)
+
+print(paste0("Unspun Average Speed per Bodylength: ",U_mean," Spun Average Speed per Bodylength: ",S_mean))
+```
+
+#Path analysis: Avg Bearing vs Heading Movement type 2 (Jetting): Over time
+```{r}
+
 ```
 

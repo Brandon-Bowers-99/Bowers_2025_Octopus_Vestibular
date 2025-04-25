@@ -96,7 +96,7 @@ path_deviance = function(DATE,date_batch,ind){
   #Read in relevant crab coordinate file
   
   crabcoordinates_file = paste0(WORKD,"\\Raw Data\\Raw_Crab_DLC_Label_Coordinates\\",DATE,"\\",DATE,"_","O",ocnum," - Made with ClipchampDLC_Resnet50_Thesis_Crab_9_25Sep25shuffle1_snapshot_010.csv")
-  
+  #Crab coordinates file contatains 60 frames per second, so must be filtered down to match the octopus data at 6 frames per second
   current_crab_coors_file = read.csv(crabcoordinates_file)
   current_crab_coors_file = carap_coors(current_crab_coors_file)
   ###
@@ -124,6 +124,7 @@ path_deviance = function(DATE,date_batch,ind){
     }
   }
  
+  #start index is the index position of the start of the movement, not the frame number of the start of the movement. Likewise, the list of movement indices are the index positions of the frame values within both crab and octopus tables.
   indee = start_index
   while (indee <= end_index){
     if (indee > end_index){
@@ -151,7 +152,8 @@ path_deviance = function(DATE,date_batch,ind){
     centerx = c(centerx,centx)
     centery = c(centery,centy)
   }
-
+    #Centerx and Centery only contain the center point of the octopuses position for the indexes during the motion being analyzed, thus to use this set one must just run through it with a counter and not with the standard indexes or frame numbers.
+  
   #Calculate total dis
   total_movement_dis = 0
   
@@ -168,12 +170,15 @@ path_deviance = function(DATE,date_batch,ind){
   oc_start_coors = c(as.numeric(centerx[1]),as.numeric(centery[1]))
   oc_end_coors = c(as.numeric(centerx[length(centerx)]),as.numeric(centery[length(centery)]))
 
-  #find angle deviance
+  #Find Bearing Change
   ideal_angle = atan2((crab_start_coors[2]-oc_start_coors[2]),(crab_start_coors[1]-oc_start_coors[1]))
   real_angle = atan2((oc_end_coors[2]-oc_start_coors[2]),(oc_end_coors[1]-oc_start_coors[1]))
   real_vs_ideal = ideal_angle - real_angle  #this factor will show the direction to which the real was left or right of ideal
   
   bearing_change = real_vs_ideal
+  
+  #Calculate Duration, Speed and Speed per Bodylength
+  
   duration = (as.numeric(end_frame) - as.numeric(start_frame)) / 60
   
   mantle_dex = mantle_indecies$INDEX[mantle_indecies$OC==ocnum]
@@ -185,6 +190,18 @@ path_deviance = function(DATE,date_batch,ind){
   proc_dat_name = paste0(WORKD,"\\Processed Data\\Full Video Results\\",DATE,"\\Processed_",DATE,"_O",ocnum,".csv")
   proc_dat = read.csv(proc_dat_name)
   
+  #Find Degree of Directness
+  Movdir_vs_Crab = c()
+  move_ind = 1
+  for (i in movement_indecies){
+    if (i != movement_indecies[length(movement_indecies)]){
+      ideal_a = atan2((as.numeric(current_crab_coors_file$Y10[i]) - centery[move_ind]),(as.numeric(current_crab_coors_file$X10[i]) - centerx[move_ind]))
+      Directness_diff = ideal_a - proc_dat$Dir_of_Movement[i] 
+      Movdir_vs_Crab = c(Movdir_vs_Crab, Directness_diff)
+      move_ind = move_ind + 1
+    }  
+  }
+  avg_movdir_vs_crab = sum(Movdir_vs_Crab) / length(Movdir_vs_Crab)
   #collect bearing_movdir_diff for relevant frames
   ##Using start_end index, but minus one for end, bc the processed data represents differences between two frames
   bear_movedir_dif = c()
@@ -206,7 +223,7 @@ path_deviance = function(DATE,date_batch,ind){
   avg_bear_movedir_dif_dif = sum(bear_movedir_dif_dif) / length(bear_movedir_dif_dif)
   
   ############
-  return(c(total_movement_dis,bearing_change,duration,avg_bear_movedir_dif,avg_bear_movedir_dif_dif,speed,speed_per_bodylength))
+  return(c(total_movement_dis,bearing_change,duration,avg_bear_movedir_dif,avg_bear_movedir_dif_dif,speed,speed_per_bodylength,avg_movdir_vs_crab))
 }
 ```
 
@@ -226,6 +243,7 @@ per_date_loop = function(this_date){
   angle_dev = c()
   avg_bear_head_dif = c()
   avg_bear_head_dif_dif = c()
+  avg_head_vs_crab = c()
   
   #make a list of the indecies in S_E_frames that relate to events from current date
   for (i in 1:length(start_end_frames$DATE)){
@@ -249,8 +267,9 @@ per_date_loop = function(this_date){
     duration = c(duration,path_dev[3])
     avg_bear_head_dif = c(avg_bear_head_dif,path_dev[4])
     avg_bear_head_dif_dif = c(avg_bear_head_dif_dif,path_dev[5])
+    avg_head_vs_crab = c(avg_head_vs_crab, path_dev[8])
     
-    path_analysis_results = data.frame(date,oc_ID,movement_type,total_movement_dis,duration,speed,speed_per_bodylength,angle_dev,avg_bear_head_dif,avg_bear_head_dif_dif)  
+    path_analysis_results = data.frame(date,oc_ID,movement_type,total_movement_dis,duration,speed,speed_per_bodylength,angle_dev,avg_bear_head_dif,avg_bear_head_dif_dif,avg_head_vs_crab)  
   }
   
   write.csv(path_analysis_results,paste0(WORKD,"\\Processed Data\\Path Analysis Results\\PA_Results_",this_date,".csv"))
