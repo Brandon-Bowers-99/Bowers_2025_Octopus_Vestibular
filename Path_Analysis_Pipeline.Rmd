@@ -195,7 +195,7 @@ path_deviance = function(DATE,date_batch,ind){
   move_ind = 1
   for (i in movement_indecies){
     if (i != movement_indecies[length(movement_indecies)]){
-      ideal_a = atan2((as.numeric(current_crab_coors_file$Y10[i]) - centery[move_ind]),(as.numeric(current_crab_coors_file$X10[i]) - centerx[move_ind]))
+      ideal_a = atan2((as.numeric(current_crab_coors_file$Y10[i]) - centery[move_ind]),(as.numeric(current_crab_coors_file$X10[i]) -   centerx[move_ind]))
       Directness_diff = ideal_a - proc_dat$Dir_of_Movement[i] 
       Movdir_vs_Crab = c(Movdir_vs_Crab, Directness_diff)
       move_ind = move_ind + 1

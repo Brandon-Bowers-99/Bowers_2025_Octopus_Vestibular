@@ -209,6 +209,14 @@ bod_l_speed = function(file_title,b_change,bearing_vecs,mant_index){
 
   for (i in 1:len){
     bear_move_dif = bearing_vecs$angles[i] - b_change$move_dir[i] 
+    if (abs(bear_move_dif) > pi){
+      if (bear_move_dif > 0){
+        bear_move_dif = (2*pi) - bear_move_dif
+      }
+      else if (bear_move_dif < 0){
+        bear_move_dif = (2*pi) + bear_move_dif
+      }
+    }
     Bearing_Movedir_Dif = c(Bearing_Movedir_Dif,bear_move_dif)
   }
   
