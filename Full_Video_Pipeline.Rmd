@@ -163,6 +163,19 @@ bearing_change = function(bearing_vecs){
     bearing_y_dif = bearing_vecs$eye_bar_perp_vecy[i+1] - bearing_vecs$eye_bar_perp_vecy[i]
     angle_dif = bearing_vecs$angles[i+1] - bearing_vecs$angles[i]
     
+    #print(bearing_vecs$angles[i+1])
+    print(bearing_vecs$eye_bar_perp_vecy[i+1] - bearing_vecs$eye_bar_perp_vecy[i])
+    print(angle_dif)
+    
+    if (abs(angle_dif) > pi){
+      if (angle_dif >= 0){
+        angle_dif = (2*pi) - angle_dif
+      }
+      else if (angle_dif < 0){
+        angle_dif = (2*pi) + angle_dif
+      }
+    }
+    
     dis = sqrt((bearing_vecs$CX_pos[i] - bearing_vecs$CX_pos[i+1])^2 + (bearing_vecs$CY_pos[i] - bearing_vecs$CY_pos[i+1])^2)
     spd = dis / (1/6) #dis in pixels per sec
     

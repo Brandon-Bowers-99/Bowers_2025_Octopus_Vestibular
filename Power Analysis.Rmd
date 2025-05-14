@@ -1,0 +1,272 @@
+---
+title: "Power Analysis"
+author: "Brandon Bowers"
+date: "2025-05-05"
+output: html_document
+---
+##Power Analysis
+```{r}
+library(compute.es)
+library(pwr)
+```
+
+#FV: n's
+```{r}
+treat.fvn = 0
+control.fvn = 0
+for (i in 1:length(FV_master_set$Trial_Type)){
+  if (FV_master_set$Trial_Type[i] == 1){
+    treat.fvn = treat.fvn + 1
+  }
+  else if (FV_master_set$Trial_Type[i] == 4){
+    control.fvn = control.fvn + 1
+  }
+}
+print(treat.fvn)
+print(control.fvn)
+```
+
+#PA: n's
+```{r}
+c_n = 0
+t_n = 0
+
+for (i in 1:length(PA_master_set$Trial_Type)){
+  if (PA_master_set$Trial_Type[i] == 4){
+    c_n = c_n + 1
+  }
+  else if (PA_master_set$Trial_Type[i] == 1){
+    t_n = t_n + 1
+  }
+}
+
+ control.n = c_n
+ treat.n = t_n  
+```
+
+#Full Video: Duration
+```{r}
+pwr.t.test(n= 32, d= NULL, sig.level=0.05,power=0.8,type="paired", alternative = "greater")
+```
+```{r}
+ #Find required mean difference from effect size
+ control.sd= sd(FV_master_set$Duration[FV_master_set$Trial_Type==4])
+ treat.sd= sd(FV_master_set$Duration[FV_master_set$Trial_Type==1])
+ 
+ Adj_sd = sqrt((((control.fvn - 1)*control.sd^2) + (treat.fvn - 1)*treat.sd^2) / (control.fvn + treat.fvn - 2))
+ 
+ mean_diff = 0.4494536 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean(FV_master_set$Duration[FV_master_set$Trial_Type == 1])
+ control_mean = mean(FV_master_set$Duration[FV_master_set$Trial_Type == 4])
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+
+
+#Full Video: Avg B-H Diff
+```{r}
+pwr.t.test(n= 32, d= NULL, sig.level=0.05,power=0.8,type="paired")
+```
+```{r}
+pwr.t.test(n= 32, d= NULL, sig.level=0.05,power=0.8,type="paired")
+```
+```{r}
+#Find required mean difference from effect size 
+control.sd= sd(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type==4])
+ treat.sd= sd(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type==1])
+ 
+ Adj_sd = sqrt((((control.fvn - 1)*control.sd^2) + (treat.fvn - 1)*treat.sd^2) / (control.fvn + treat.fvn - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == 1])
+ control_mean = mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == 4])
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+
+```{r}
+pwr.t.test(n= 32, d= NULL, sig.level=0.05,power=0.8,type="paired")
+```
+#PA: Bearing Change: Jetting (NO LONGER IN USE)
+```{r}
+ control.sd= sd(PA_master_set$Bearing_Change[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==2])
+ treat.sd= sd(PA_master_set$Bearing_Change[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==2])
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean(PA_master_set$Bearing_Change[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 2])
+ control_mean = mean(PA_master_set$Bearing_Change[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 2])
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+#PA: DD, Crawling
+```{r}
+ control.sd= sd((PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==1]))
+ treat.sd= sd((PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==1]))
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean((PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 1]))
+ control_mean = mean((PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 1]))
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+#PA: DD, Jetting
+```{r}
+ control.sd= sd((PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==2]))
+ treat.sd= sd((PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==2]))
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean((PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 2]))
+ control_mean = mean((PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 2]))
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+#PA: AVG SPB Crawling
+```{r}
+ control.sd= sd(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==1])
+ treat.sd= sd(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==1])
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 1])
+ control_mean = mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 1])
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+#PA: AVG SPB Jetting
+```{r}
+ control.sd= sd(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==2])
+ treat.sd= sd(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==2])
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 2])
+ control_mean = mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 2])
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+
+#PA: AVG B-H Diff Crawling 
+```{r}
+ control.sd= sd((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==1]))
+ treat.sd= sd((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==1]))
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 1]))
+ control_mean = mean((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 1]))
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+
+#PA: AVG B-H Diff Jetting
+```{r}
+ control.sd= sd((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==2]))
+ treat.sd= sd((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==2]))
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 2]))
+ control_mean = mean((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 2]))
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+#PA: AVG change in B-H Diff Crawling
+```{r}
+ control.sd= sd((PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==1]))
+ treat.sd= sd((PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==1]))
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 1]))
+ control_mean = mean((PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 1]))
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+
+#PA: AVG change in B-H Diff Jetting
+```{r}
+ control.sd= sd((PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==2]))
+ treat.sd= sd((PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==2]))
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean((PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 2]))
+ control_mean = mean((PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 2]))
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+
+#PA: Duration Crawling
+```{r}
+ control.sd= sd(PA_master_set$Duration[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==1])
+ treat.sd= sd(PA_master_set$Duration[PA_master_set$Trial_Type==1&PA_master_set$Movement_Type==1])
+
+ Adj_sd = sqrt((((control.n - 1)*control.sd^2) + (treat.n - 1)*treat.sd^2) / (control.n + treat.n - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean(PA_master_set$Duration[PA_master_set$Trial_Type == 1&PA_master_set$Movement_Type == 1])
+ control_mean = mean(PA_master_set$Duration[PA_master_set$Trial_Type == 4&PA_master_set$Movement_Type == 1])
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
+
+
