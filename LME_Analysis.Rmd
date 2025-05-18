@@ -10,7 +10,8 @@ output: html_document
  library(car)
  library(tidyverse)
  library(ggplot2)
-library(lattice)
+ library(lattice)
+ library(nlmeU)
 ```
 
 ```{r}
@@ -183,6 +184,13 @@ write.csv(PA_master_set,paste0(WD,"\\Processed Data\\PA_Master_Set.csv"))
 ########
 #Run mixed effects model#
 ########
+
+# loading Data
+```{r}
+PA_master_set=read.csv("Processed Data/PA_Master_Set.csv")
+FV_master_set=read.csv("Processed Data/FV_Master_Set.csv")
+```
+
 
 #Analyzing Path Analysis Data
 ##############################
@@ -394,6 +402,12 @@ bearing_change.lme=lme(abs(Speed_per_Bodylength)~Trial_Type*NewDates,random=~1|O
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+
+## trying out a new 
+
+
+
+
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -1025,4 +1039,79 @@ print(paste0("Unspun Average Speed per Bodylength: ",U_mean," Spun Average Speed
 ```{r}
 
 ```
+
+# Testing out some power analysis types
+
+## Avg Bearing Change
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+bearing_change.lme=lme(Avg_Bearing_Change~Trial_Type,random=~1|OC_ID, 
+                       correlation=corAR1(form= ~NewDates|OC_ID),
+                       data=FV_master_set)
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+
+```{r}
+Pwr(
+  obj = bearing_change.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+
+```{r}
+
+obs_diff =  mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "4"]) -
+            mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=FV_master_set
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Bearing_Change[FV_master_set$Trial_Type == "4"]=
+  temporary$Avg_Bearing_Change[FV_master_set$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Bearing_Change[temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Bearing_Change[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Bearing_Change~Trial_Type,
+             random=~1|OC_ID, 
+             correlation=corAR1(form= ~NewDates|OC_ID),
+             data=temporary
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+
+
+
 
