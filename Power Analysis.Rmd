@@ -64,13 +64,25 @@ pwr.t.test(n= 32, d= NULL, sig.level=0.05,power=0.8,type="paired", alternative =
  observed_mean_difference = test_mean - control_mean
  print(observed_mean_difference)
 ```
-
-
+#Full Video: Avg Speed per Body Length
+```{r}
+#Find required mean difference from effect size 
+control.sd= sd(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type==4])
+ treat.sd= sd(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type==1])
+ 
+ Adj_sd = sqrt((((control.fvn - 1)*control.sd^2) + (treat.fvn - 1)*treat.sd^2) / (control.fvn + treat.fvn - 2))
+ 
+ mean_diff = 0.5112738 * Adj_sd
+```
+```{r}
+ #Find observed mean difference
+ test_mean = mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == 1])
+ control_mean = mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == 4])
+ observed_mean_difference = test_mean - control_mean
+ print(observed_mean_difference)
+```
 
 #Full Video: Avg B-H Diff
-```{r}
-pwr.t.test(n= 32, d= NULL, sig.level=0.05,power=0.8,type="paired")
-```
 ```{r}
 pwr.t.test(n= 32, d= NULL, sig.level=0.05,power=0.8,type="paired")
 ```
