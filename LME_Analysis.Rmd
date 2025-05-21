@@ -236,6 +236,7 @@ lines(s_dates_pred,spun_predy)
 
 print(predicted_data)
 ```
+
 ```{r}
 PA_DD_SPUN = (PA_master_set$Avg_Directness_Difference[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
 PA_DD_CONTROL = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
@@ -259,9 +260,9 @@ for (i in 1:length(Pltx_DD_SPUN_1)){
   Pltx_DD_SPUN_1[i] = jitter(Pltx_DD_SPUN_1[i],factor = 3)
 }
 
-boxplot(PA_DD_CONTROL,PA_DD_SPUN,
+PA_DD_1 = boxplot(PA_DD_CONTROL,PA_DD_SPUN,
 #main = "Average Directness Difference in Crawling Movements",
-ylab = "Average Directness Difference (radians)",
+ylab = "Radians",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -315,8 +316,8 @@ lines(s_dates_pred,spun_predy)
 print(predicted_data)
 ```
 ```{r}
-PA_DD_SPUN = abs(PA_master_set$Avg_Directness_Difference[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==1])
-PA_DD_CONTROL = abs(PA_master_set$Bearing_Change[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==4])
+PA_DD_SPUN = (PA_master_set$Avg_Directness_Difference[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==1])
+PA_DD_CONTROL = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==4])
 
 PA_DD_SPUN_norm <- rnorm(0.25,mean=mean(PA_DD_SPUN, na.rm=TRUE), sd=sd(PA_DD_SPUN, na.rm=TRUE))
 PA_DD_CONTROL_norm <- rnorm(0.25,mean=mean(PA_DD_CONTROL, na.rm=TRUE), sd=sd(PA_DD_CONTROL, na.rm=TRUE))
@@ -339,7 +340,7 @@ for (i in 1:length(Pltx_DD_SPUN_2)){
 
 boxplot(PA_DD_CONTROL,PA_DD_SPUN,
 #main = "Average Directness Difference in Jetting Movements",
-ylab = "Average Directness Difference (radians)",
+ylab = "Radians",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -411,7 +412,7 @@ for (i in 1:length(PA_SPB_SPUN)){
 }
 
 for (i in 1:length(Pltx_SPB_CONTROL_1)){
-  Pltx_SPB_CONTROL_1[i] = jitter(Pltx_SPB_CONTROL_1[i],factor = 6)
+  Pltx_SPB_CONTROL_1[i] = jitter(Pltx_SPB_CONTROL_1[i],factor = 8)
 }
 for (i in 1:length(Pltx_SPB_SPUN_1)){
   Pltx_SPB_SPUN_1[i] = jitter(Pltx_SPB_SPUN_1[i],factor = 3)
@@ -419,7 +420,7 @@ for (i in 1:length(Pltx_SPB_SPUN_1)){
 
 boxplot(PA_SPB_CONTROL,PA_SPB_SPUN,
 #main = "Average Speed per Bodylength in Crawling Movements",
-ylab = "Average Speed per Bodylength (Body Lengths per 0.166 seconds)",
+ylab = "Size-corrected speed units",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -490,7 +491,7 @@ for (i in 1:length(PA_SPB_SPUN)){
 }
 
 for (i in 1:length(Pltx_SPB_CONTROL_2)){
-  Pltx_SPB_CONTROL_2[i] = jitter(Pltx_SPB_CONTROL_2[i],factor = 6)
+  Pltx_SPB_CONTROL_2[i] = jitter(Pltx_SPB_CONTROL_2[i],factor = 12)
 }
 for (i in 1:length(Pltx_SPB_SPUN_2)){
   Pltx_SPB_SPUN_2[i] = jitter(Pltx_SPB_SPUN_2[i],factor = 3)
@@ -498,7 +499,7 @@ for (i in 1:length(Pltx_SPB_SPUN_2)){
 
 boxplot(PA_SPB_CONTROL,PA_SPB_SPUN,
 #main = "Average Speed per Bodylength in Jetting Movements",
-ylab = "Average Speed per Bodylength (pixels)",
+ylab = "Size-corrected speed units",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -524,6 +525,45 @@ bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 
 ```
+```{r}
+PA_BC_SPUN = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
+PA_BC_CONTROL = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
+
+PA_BC_SPUN_norm <- rnorm(4,mean=mean(PA_SPB_SPUN, na.rm=TRUE), sd=sd(PA_SPB_SPUN, na.rm=TRUE))
+PA_BC_CONTROL_norm <- rnorm(84,mean=mean(PA_SPB_CONTROL, na.rm=TRUE), sd=sd(PA_SPB_CONTROL, na.rm=TRUE))
+
+Pltx_BC_CONTROL_1 = c()
+Pltx_BC_SPUN_1 = c()
+for (i in 1:length(PA_BC_CONTROL)){
+  Pltx_BC_CONTROL_1 = c(Pltx_BC_CONTROL_1,1)
+}
+for (i in 1:length(PA_BC_SPUN)){
+  Pltx_BC_SPUN_1 = c(Pltx_BC_SPUN_1,2)
+}
+
+for (i in 1:length(Pltx_BC_CONTROL_1)){
+  Pltx_BC_CONTROL_1[i] = jitter(Pltx_BC_CONTROL_1[i],factor = 12)
+}
+for (i in 1:length(Pltx_BC_SPUN_1)){
+  Pltx_BC_SPUN_1[i] = jitter(Pltx_BC_SPUN_1[i],factor = 3)
+}
+
+boxplot(PA_BC_CONTROL,PA_BC_SPUN,
+ylab = "Radians",
+at = c(1,2),
+names = c("Control", "Spun"),
+las = 2,
+col = c("#C1FFC1","#FFAEB9"),
+border = "black",
+horizontal = FALSE,
+notch = FALSE,
+range = 0
+)
+
+points(x = Pltx_BC_CONTROL_1 ,y = PA_BC_CONTROL,col="black")
+points(x = Pltx_BC_SPUN_1 ,y = PA_BC_SPUN,col="black")
+
+```
 
 #Avg bearing change (movement type 2)
 ```{r}
@@ -535,6 +575,46 @@ bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 
 ```
+```{r}
+PA_BC_SPUN = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==1])
+PA_BC_CONTROL = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==4])
+
+PA_BC_SPUN_norm <- rnorm(4,mean=mean(PA_SPB_SPUN, na.rm=TRUE), sd=sd(PA_SPB_SPUN, na.rm=TRUE))
+PA_BC_CONTROL_norm <- rnorm(84,mean=mean(PA_SPB_CONTROL, na.rm=TRUE), sd=sd(PA_SPB_CONTROL, na.rm=TRUE))
+
+Pltx_BC_CONTROL_2 = c()
+Pltx_BC_SPUN_2 = c()
+for (i in 1:length(PA_BC_CONTROL)){
+  Pltx_BC_CONTROL_2 = c(Pltx_BC_CONTROL_2,1)
+}
+for (i in 1:length(PA_BC_SPUN)){
+  Pltx_BC_SPUN_2 = c(Pltx_BC_SPUN_2,2)
+}
+
+for (i in 1:length(Pltx_BC_CONTROL_2)){
+  Pltx_BC_CONTROL_2[i] = jitter(Pltx_BC_CONTROL_2[i],factor = 12)
+}
+for (i in 1:length(Pltx_BC_SPUN_2)){
+  Pltx_BC_SPUN_2[i] = jitter(Pltx_BC_SPUN_2[i],factor = 3)
+}
+
+boxplot(PA_BC_CONTROL,PA_BC_SPUN,
+ylab = "Radians",
+at = c(1,2),
+names = c("Control", "Spun"),
+las = 2,
+col = c("#C1FFC1","#FFAEB9"),
+border = "black",
+horizontal = FALSE,
+notch = FALSE,
+range = 0
+)
+
+points(x = Pltx_BC_CONTROL_2 ,y = PA_BC_CONTROL,col="black")
+points(x = Pltx_BC_SPUN_2 ,y = PA_BC_SPUN,col="black")
+
+```
+
 
 #Avg Bearing vs Heading, movement type == 1
 ```{r}
@@ -598,7 +678,7 @@ for (i in 1:length(Pltx_BvH_SPUN_1)){
 
 boxplot(PA_BvH_CONTROL,PA_BvH_SPUN,
 #main = "Average Bearing-Heading Difference in Crawling Movements",
-ylab = "Average Bearing-Heading Difference (radians)",
+ylab = "Radians",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -677,8 +757,7 @@ for (i in 1:length(Pltx_BvH_SPUN_2)){
 }
 
 boxplot(PA_BvH_CONTROL,PA_BvH_SPUN,
-main = "Average Bearing-Heading Difference in Jetting Movements",
-ylab = "Average Bearing-Heading Difference (radians)",
+ylab = "Radians",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -757,7 +836,7 @@ for (i in 1:length(Pltx_BvHC_SPUN_1)){
 
 boxplot(PA_BvHC_CONTROL,PA_BvHC_SPUN,
 #main = "Avg. Change in Bearing-Heading Difference - Crawling",
-ylab = "Average Bearing-Heading Difference (radians)",
+ylab = "Radians",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -837,7 +916,7 @@ for (i in 1:length(Pltx_BvHC_SPUN_2)){
 
 boxplot(PA_BvHC_CONTROL,PA_BvHC_SPUN,
 #main = "Avg. Change in Bearing-Heading Difference - Jetting",
-ylab = "Average Bearing-Heading Difference (radians)",
+ylab = "Radians",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -916,7 +995,7 @@ for (i in 1:length(Pltx_Duration_SPUN_1)){
 
 boxplot(PA_Duration_CONTROL,PA_Duration_SPUN,
 #main = "Duration of Crawling Movements",
-ylab = "Duration (seconds)",
+ylab = "Seconds",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -979,9 +1058,25 @@ PA_Duration_CONTROL = abs(PA_master_set$Duration[PA_master_set$Movement_Type==2&
 PA_Duration_SPUN_norm <- rnorm(0.25,mean=mean(PA_Duration_SPUN, na.rm=TRUE), sd=sd(PA_Duration_SPUN, na.rm=TRUE))
 PA_Duration_CONTROL_norm <- rnorm(0.25,mean=mean(PA_Duration_CONTROL, na.rm=TRUE), sd=sd(PA_Duration_CONTROL, na.rm=TRUE))
 
+Pltx_Duration_CONTROL_2 = c()
+Pltx_Duration_SPUN_2 = c()
+for (i in 1:length(PA_Duration_CONTROL)){
+  Pltx_Duration_CONTROL_2 = c(Pltx_Duration_CONTROL_2,1)
+}
+for (i in 1:length(PA_Duration_SPUN)){
+  Pltx_Duration_SPUN_2 = c(Pltx_Duration_SPUN_2,2)
+}
+
+for (i in 1:length(Pltx_Duration_CONTROL_2)){
+  Pltx_Duration_CONTROL_2[i] = jitter(Pltx_Duration_CONTROL_2[i],factor = 10)
+}
+for (i in 1:length(Pltx_Duration_SPUN_2)){
+  Pltx_Duration_SPUN_2[i] = jitter(Pltx_Duration_SPUN_2[i],factor = 3)
+}
+
 boxplot(PA_Duration_CONTROL,PA_Duration_SPUN,
-#main = "Duration of Jetting Movements",
-ylab = "Duration (seconds)",
+#main = "Duration of Crawling Movements",
+ylab = "Seconds",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -991,6 +1086,10 @@ horizontal = FALSE,
 notch = FALSE,
 range = 0
 )
+
+points(x = Pltx_Duration_CONTROL_2 ,y = PA_Duration_CONTROL,col="black")
+points(x = Pltx_Duration_SPUN_2 ,y = PA_Duration_SPUN,col="black")
+
 ```
 
 
@@ -1074,7 +1173,7 @@ for (i in 1:length(Pltx_Duration_SPUN_FV)){
 
 boxplot(FV_Duration_CONTROL,FV_Duration_SPUN,
 #main = "Duration of Jetting Movements",
-ylab = "Duration (seconds)",
+ylab = "Seconds",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -1151,7 +1250,7 @@ for (i in 1:length(Pltx_SPB_SPUN_FV)){
 
 boxplot(FV_SPB_CONTROL,FV_SPB_SPUN,
 #main = "Duration of Jetting Movements",
-ylab = "Duration (seconds)",
+ylab = "Size-corrected units",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -1202,7 +1301,7 @@ for (i in 1:length(Pltx_BC_SPUN_FV)){
 
 boxplot(FV_BC_CONTROL,FV_BC_SPUN,
 #main = "Average BvH",
-ylab = "Bearing-heading difference (Radians)",
+ylab = "Radians",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -1254,7 +1353,7 @@ for (i in 1:length(Pltx_BvH_SPUN_FV)){
 
 boxplot(FV_BvH_CONTROL,FV_BvH_SPUN,
 #main = "Average BvH",
-ylab = "Bearing-heading difference (Radians)",
+ylab = "Radians",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -1317,7 +1416,17 @@ SF_ratio = read.table(text ="Control Spun
 1 22 6 
 2 165 41 ", header= TRUE)
 
-barplot(as.matrix(SF_ratio),col=c("#E74C3C","#27AE60"))
+barplot(as.matrix(SF_ratio),
+        ylab = "Occurances",
+        ylim = range(0,200),
+        col=c("#E74C3C","#27AE60"))
+
+legend(x = "topright",
+       legend = c("Success","Failure"), 
+       col = c("#E74C3C","#27AE60"),
+       fill = 3:2,
+       cex = 0.75)
+
 ```
 
 
