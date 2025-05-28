@@ -526,6 +526,41 @@ bearing_change.ANOVA
 
 ```
 ```{r}
+unique(PA_master_set$Trial_Type)
+
+predict.data=data.frame(Trial_Type=as.factor(rep(unique(PA_master_set$Trial_Type),2)),NewDates=c(0,0,8,24))
+
+predict.data$predict=predict(bearing_change.lme,newdata = predict.data,level=0)
+predicted_data = predict.data
+
+unspun_predy = c(predicted_data$predict[2],predicted_data$predict[4])
+spun_predy = c(predicted_data$predict[1],predicted_data$predict[3])
+u_dates_pred = c(0,24)
+s_dates_pred = c(0,8)
+
+plot(Bearing_Change~NewDates,
+     data=PA_master_set[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4,],
+     #log="y",
+     #main = "Duration of Directed movements",
+     ylim=range(0,1.4),
+     xlim = range(0,25),
+     ylab = "Radians",
+     xlab = "Date",
+     pch=21,bg="#52c155"
+     )
+points(Bearing_Change~NewDates,
+     data=PA_master_set[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1,],
+     pch=21,bg="#eb3a23")
+legend("top",c("Spun","Control"),fill = c("#eb3a23","#52c155"), cex = 0.45)
+
+lines(u_dates_pred,unspun_predy, col = "#52c155",lwd = 1.75)
+lines(s_dates_pred,spun_predy, col = "red",lwd = 1.75)
+
+print(predicted_data)
+```
+
+
+```{r}
 PA_BC_SPUN = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
 PA_BC_CONTROL = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
 
@@ -654,8 +689,8 @@ lines(s_dates_pred,spun_predy)
 print(predicted_data)
 ```
 ```{r}
-PA_BvH_SPUN = abs(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
-PA_BvH_CONTROL = abs(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
+PA_BvH_SPUN = (PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
+PA_BvH_CONTROL = (PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
 
 PA_BvH_SPUN_norm <- rnorm(0.25,mean=mean(PA_BvH_SPUN, na.rm=TRUE), sd=sd(PA_BvH_SPUN, na.rm=TRUE))
 PA_BvH_CONTROL_norm <- rnorm(0.25,mean=mean(PA_BvH_CONTROL, na.rm=TRUE), sd=sd(PA_BvH_CONTROL, na.rm=TRUE))
@@ -734,8 +769,8 @@ lines(s_dates_pred,spun_predy)
 print(predicted_data)
 ```
 ```{r}
-PA_BvH_SPUN = abs(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==1])
-PA_BvH_CONTROL = abs(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==4])
+PA_BvH_SPUN = (PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==1])
+PA_BvH_CONTROL = (PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==4])
 
 PA_BvH_SPUN_norm <- rnorm(4,mean=mean(PA_BvH_SPUN, na.rm=TRUE), sd=sd(PA_BvH_SPUN, na.rm=TRUE))
 PA_BvH_CONTROL_norm <- rnorm(84,mean=mean(PA_BvH_CONTROL, na.rm=TRUE), sd=sd(PA_BvH_CONTROL, na.rm=TRUE))
@@ -811,8 +846,8 @@ lines(s_dates_pred,spun_predy)
 print(predicted_data)
 ```
 ```{r}
-PA_BvHC_SPUN = abs(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
-PA_BvHC_CONTROL = abs(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
+PA_BvHC_SPUN = (PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
+PA_BvHC_CONTROL = (PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
 
 PA_BvHC_SPUN_norm <- rnorm(0.25,mean=mean(PA_BvHC_SPUN, na.rm=TRUE), sd=sd(PA_BvHC_SPUN, na.rm=TRUE))
 PA_BvHC_CONTROL_norm <- rnorm(0.25,mean=mean(PA_BvHC_CONTROL, na.rm=TRUE), sd=sd(PA_BvHC_CONTROL, na.rm=TRUE))
@@ -1037,17 +1072,20 @@ s_dates_pred = c(0,8)
 plot(Duration~NewDates,
      data=PA_master_set[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==4,],
      #log="y",
-     main = "Duration of Directed movements",
-     ylim=range(abs(PA_master_set$Duration[PA_master_set$Movement_Type==2])),
-     pch=21,bg="red"
+     #main = "Duration of Directed movements",
+     ylim=range(0,5),
+     xlim = range(0,25),
+     ylab = "Seconds",
+     xlab = "Date",
+     pch=21,bg="#52c155"
      )
 points(Duration~NewDates,
      data=PA_master_set[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==1,],
-     pch=21,bg="blue")
-legend("topright",c("Spun","Unspun"),fill = c("blue","red"))
+     pch=21,bg="#eb3a23")
+legend("topright",c("Spun","Control"),fill = c("#eb3a23","#52c155"), cex = 0.45)
 
-lines(u_dates_pred,unspun_predy)
-lines(s_dates_pred,spun_predy)
+lines(u_dates_pred,unspun_predy, col = "#52c155",lwd = 1.75)
+lines(s_dates_pred,spun_predy, col = "red",lwd = 1.75)
 
 print(predicted_data)
 ```
