@@ -198,6 +198,14 @@ catch.ANOVA=Anova(bearing_change.lme,type="III")
 catch.ANOVA
 ```
 
+# Using Chi Square test
+```{r}
+move.tab=table(PA_master_set$Trial_Type,PA_master_set$Movement_Type)
+move.tab
+move.chi=chisq.test(move.tab)
+move.chi
+```
+
 #Avg Directness Difference (movement type 1)
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
