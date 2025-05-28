@@ -8,7 +8,992 @@ output: html_document
 ```{r}
 library(compute.es)
 library(pwr)
+library(nlmeU)
+library(nlme)
 ```
+###
+FULL VIDEO
+###
+
+## Duration
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+FV_duration.lme=lme((Duration)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=FV_master_set)
+
+```
+```{r}
+Pwr(
+  obj = bearing_change.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(FV_master_set$Duration[FV_master_set$Trial_Type == "4"]) -
+            mean(FV_master_set$Duration[FV_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=FV_master_set
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Duration[FV_master_set$Trial_Type == "4"]=
+  temporary$Duration[FV_master_set$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Duration[temporary$Trial_Type == "4"]) -
+            mean(temporary$Duration[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Duration~Trial_Type,
+             random=~1|OC_ID, 
+             correlation=corAR1(form= ~NewDates|OC_ID),
+             data=temporary
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Size-corrected Speed
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+FV_AVG_SPB.lme=lme((Avg_Speed_Per_Bodylength)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=FV_master_set)
+
+```
+```{r}
+Pwr(
+  obj = FV_AVG_SPB.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "4"]) -
+            mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=FV_master_set
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "4"]=
+  temporary$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Speed_Per_Bodylength[temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Speed_Per_Bodylength[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Speed_Per_Bodylength~Trial_Type,
+             random=~1|OC_ID, 
+             correlation=corAR1(form= ~NewDates|OC_ID),
+             data=temporary
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Avg. Bearing Change
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+FV_AVG_BC.lme=lme((Avg_Bearing_Change)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=FV_master_set)
+
+```
+```{r}
+Pwr(
+  obj = FV_AVG_BC.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "4"]) -
+            mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=FV_master_set
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Bearing_Change[FV_master_set$Trial_Type == "4"]=
+  temporary$Avg_Bearing_Change[FV_master_set$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Bearing_Change[temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Bearing_Change[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Bearing_Change~Trial_Type,
+             random=~1|OC_ID, 
+             correlation=corAR1(form= ~NewDates|OC_ID),
+             data=temporary
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Average B-H Diff
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+FV_AVG_BvH.lme=lme((Avg_Bearing_vs_Heading_FV)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=FV_master_set)
+
+```
+```{r}
+Pwr(
+  obj = FV_AVG_BvH.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"]) -
+            mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=FV_master_set
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"]=
+  temporary$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Bearing_vs_Heading_FV[temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Bearing_vs_Heading_FV[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Bearing_vs_Heading_FV~Trial_Type,
+             random=~1|OC_ID, 
+             correlation=corAR1(form= ~NewDates|OC_ID),
+             data=temporary
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+
+###
+PA
+###
+
+## Movement Type
+```{r
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_MT.lme=lme((Movement_Type)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set)
+
+```
+```{r
+Pwr(
+  obj = PA_MT.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r
+
+obs_diff =  mean(PA_master_set$Movement_Type[PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Movement_Type[PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Movement_Type[PA_master_set$Trial_Type == "4"]=
+  temporary$Movement_Type[PA_master_set$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Movement_Type[temporary$Trial_Type == "4"]) -
+            mean(temporary$Movement_Type[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Duration~Trial_Type,
+             random=~1|OC_ID, 
+             correlation=corAR1(form= ~NewDates|OC_ID),
+             data=temporary
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r
+plot(power~mean_diff,data=output,type="l")
+```
+
+## DD, Crawling
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_DD_1.lme=lme((Avg_Directness_Difference)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data= PA_master_set[PA_master_set$Movement_Type == "1",])
+
+```
+```{r}
+Pwr(
+  obj = PA_DD_1.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Directness_Difference[PA_master_set$Movement_Type == "1" & PA_master_set$Trial_Type == "4"]=
+  temporary$Avg_Directness_Difference[PA_master_set$Movement_Type == "1" & PA_master_set$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Directness_Difference[PA_master_set$Movement_Type == "1" & temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Directness_Difference[PA_master_set$Movement_Type == "1" & temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Directness_Difference~Trial_Type*NewDates,
+             random=~1|OC_ID, 
+             data=temporary[temporary$Movement_Type == "1",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## DD, Jetting
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_DD_2.lme=lme((Avg_Directness_Difference)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type == "2",])
+
+```
+```{r}
+Pwr(
+  obj = PA_DD_2.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Movement_Type == "2"&PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Movement_Type == "2"&PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set[temporary$Movement_Type == "2",]
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Directness_Difference[temporary$Trial_Type == "4"]=
+  temporary$Avg_Directness_Difference[temporary$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Directness_Difference[temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Directness_Difference[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Directness_Difference~Trial_Type*NewDates,
+             random=~1|OC_ID,
+             data=temporary[temporary$Movement_Type == "2",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Avg Size-corrected Speed, Crawling
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_SPB_1.lme=lme((Speed_per_Bodylength)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type == "1",])
+
+```
+```{r}
+Pwr(
+  obj = PA_SPB_1.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set[PA_master_set$Movement_Type == "1",]
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Speed_per_Bodylength[temporary$Trial_Type == "4"]=
+  temporary$Speed_per_Bodylength[temporary$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Speed_per_Bodylength[temporary$Trial_Type == "4"]) -
+            mean(temporary$Speed_per_Bodylength[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Speed_per_Bodylength~Trial_Type*NewDates,
+             random=~1|OC_ID, 
+             data=temporary[temporary$Movement_Type == "1",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Avg Size-corrected Speed, Jetting
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_SPB_2.lme=lme((Speed_per_Bodylength)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type == "2",])
+```
+```{r}
+Pwr(
+  obj = PA_SPB_2.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Movement_Type == "2"&PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Movement_Type == "2"&PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set[PA_master_set$Movement_Type == "2",]
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Speed_per_Bodylength[temporary$Trial_Type == "4"]=
+  temporary$Speed_per_Bodylength[temporary$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Speed_per_Bodylength[temporary$Trial_Type == "4"]) -
+            mean(temporary$Speed_per_Bodylength[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Speed_per_Bodylength~Trial_Type*NewDates,
+             random=~1|OC_ID, 
+             data=temporary[temporary$Movement_Type == "2",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Avg Bearing Change, Jetting
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_BC_2.lme=lme((Bearing_Change)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type == "2",])
+
+```
+```{r}
+Pwr(
+  obj = PA_BC_2.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Bearing_Change[PA_master_set$Movement_Type == "2"&PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Bearing_Change[PA_master_set$Movement_Type == "2"&PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set[temporary$Movement_Type == "2",]
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Bearing_Change[temporary$Trial_Type == "4"]=
+  temporary$Bearing_Change[temporary$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Bearing_Change[temporary$Trial_Type == "4"]) -
+            mean(temporary$Bearing_Change[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Bearing_Change~Trial_Type*NewDates,
+             random=~1|OC_ID, 
+             data=temporary[temporary$Movement_Type == "2",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Avg B-H Diff, Crawling
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_BvH_1.lme=lme((Avg_Bearing_vs_Heading)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type == "1",])
+
+```
+```{r}
+Pwr(
+  obj = PA_BvH_1.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set[temporary$Movement_Type == "1",]
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Bearing_vs_Heading[temporary$Trial_Type == "4"]=
+  temporary$Avg_Bearing_vs_Heading[temporary$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Bearing_vs_Heading[temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Bearing_vs_Heading[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Bearing_vs_Heading~Trial_Type*NewDates,
+             random=~1|OC_ID, 
+             data=temporary[temporary$Movement_Type == "1",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Avg B-H Diff, Jetting
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_BvH_2.lme=lme((Avg_Bearing_vs_Heading)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type == "2",])
+
+```
+```{r}
+Pwr(
+  obj = PA_BvH_2.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type == "2"&PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type == "2"&PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set[PA_master_set$Movement_Type == "2",]
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Bearing_vs_Heading[temporary$Trial_Type == "4"]=
+  temporary$Avg_Bearing_vs_Heading[temporary$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Bearing_vs_Heading[temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Bearing_vs_Heading[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Bearing_vs_Heading~Trial_Type*NewDates,
+             random=~1|OC_ID, 
+             data=temporary[temporary$Movement_Type == "2",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Avg change in B-H Diff, Crawling
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_BvHC_1.lme=lme((Avg_Bearing_vs_Heading_Change)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type == "1",])
+
+```
+```{r}
+Pwr(
+  obj = PA_BvHC_1.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set[PA_master_set$Movement_Type == "1",]
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Bearing_vs_Heading_Change[temporary$Trial_Type == "4"]=
+  temporary$Avg_Bearing_vs_Heading_Change[temporary$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Bearing_vs_Heading_Change[temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Bearing_vs_Heading_Change[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Bearing_vs_Heading_Change~Trial_Type*NewDates,
+             random=~1|OC_ID, 
+             data=temporary[temporary$Movement_Type == "1",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+## Avg change in B-H Diff, Jetting
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_BvHC_2.lme=lme((Avg_Bearing_vs_Heading_Change)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type == "2",])
+
+```
+```{r}
+Pwr(
+  obj = PA_BvHC_2.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type == "2"& PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type == "2"& PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set[PA_master_set$Movement_Type == "2",]
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Avg_Bearing_vs_Heading_Change[temporary$Trial_Type == "4"]=
+  temporary$Avg_Bearing_vs_Heading_Change[temporary$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Avg_Bearing_vs_Heading_Change[temporary$Trial_Type == "4"]) -
+            mean(temporary$Avg_Bearing_vs_Heading_Change[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Avg_Bearing_vs_Heading_Change~Trial_Type*NewDates,
+             random=~1|OC_ID, 
+             data=temporary[temporary$Movement_Type == "2",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+##Duration, crawling
+```{r}
+PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
+
+PA_BvHC_2.lme=lme((Duration)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=PA_master_set[PA_master_set$Movement_Type == "1",])
+
+```
+```{r}
+Pwr(
+  obj = PA_BvHC_2.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)
+
+```
+```{r}
+
+obs_diff =  mean(PA_master_set$Duration[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "4"]) -
+            mean(PA_master_set$Duration[PA_master_set$Movement_Type == "1"&PA_master_set$Trial_Type == "1"])
+
+step=obs_diff/10
+
+temporary=PA_master_set[PA_master_set$Movement_Type == "1",]
+output=data.frame(mean_diff=numeric(),power=numeric())
+i=1
+temp.pwr=0
+
+while (temp.pwr<0.8){
+  
+temporary$Duration[temporary$Trial_Type == "4"]=
+  temporary$Duration[temporary$Trial_Type == "4"]+step
+
+mean_diff=mean(temporary$Duration[temporary$Trial_Type == "4"]) -
+            mean(temporary$Duration[temporary$Trial_Type == "1"])
+
+temp.lme=lme(
+             Duration~Trial_Type*NewDates,
+             random=~1|OC_ID, 
+             data=temporary[temporary$Movement_Type == "1",]
+             )
+
+temp.pwr=Pwr(
+  obj = temp.lme,
+  Terms = "Trial_Type",
+  alpha = 0.05,
+  method = "z"
+)$Power
+
+power=temp.pwr
+output=rbind(output, data.frame(mean_diff = mean_diff, power = temp.pwr))
+
+i=i+1
+}
+
+
+output
+```
+```{r}
+plot(power~mean_diff,data=output,type="l")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #FV: n's
 ```{r}
