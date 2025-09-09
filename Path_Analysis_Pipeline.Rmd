@@ -4,6 +4,9 @@ author: "Brandon Bowers"
 date: "2025-03-13"
 output: html_document
 ---
+To use: After setting the working directory as the folder containing the "raw data" folder, simply run all. This will populate the "processed data" folder with the results.
+
+
 ```{r}
 library (glue)
 library (stringr)
@@ -14,10 +17,12 @@ library(NISTunits)
 
 #SET LOCATION OF DATA HERE
 ```{r}
+WORKD = "C:\\your_information\\Bowers_2025_Octopus_Vestibular"
+```
+
+```{r}
 datelist_u = c("7_24","7_26","7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11","8_13","8_15","8_17")
 datelist = c("7/24","7/26","7/28","7/30","8/1","8/3","8/5","8/7","8/9","8/11","8/13","8/15","8/17")
-
-WORKD = "C:\\Users\\Bvipe\\OneDrive - Walla Walla University\\Desktop\\Bowers_2025_Octopus_Vestibular"
 
 mantle_indecies = read.csv(paste0(WORKD,"\\Raw Data\\Octopus_Mantle_Measurements\\Mantle Indecies.csv"))
 
@@ -243,8 +248,6 @@ path_deviance = function(DATE,date_batch,ind){
   return(c(total_movement_dis,bearing_change,duration,avg_bear_movedir_dif,avg_bear_movedir_dif_dif,speed,speed_per_bodylength,avg_movdir_vs_crab))
 }
 ```
-
-##currently logging 2 dif_difs
 
 ```{r}
 per_date_loop = function(this_date){

@@ -11,6 +11,9 @@ library(pwr)
 library(nlmeU)
 library(nlme)
 ```
+
+This first section is being used to determine what mean difference between treatment and control would be estimated in correlation with a power level of ~0.8.
+
 ###
 FULL VIDEO
 ###
@@ -55,7 +58,6 @@ mean_diff=mean(temporary$Duration[temporary$Trial_Type == "4"]) -
 temp.lme=lme(
              Duration~Trial_Type,
              random=~1|OC_ID, 
-             correlation=corAR1(form= ~NewDates|OC_ID),
              data=temporary
              )
 
@@ -74,9 +76,6 @@ i=i+1
 
 
 output
-```
-```{r}
-plot(power~mean_diff,data=output,type="l")
 ```
 
 ## Size-corrected Speed
@@ -138,9 +137,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 
 ## Avg. Bearing Change
 ```{r}
@@ -181,8 +178,7 @@ mean_diff=mean(temporary$Avg_Bearing_Change[temporary$Trial_Type == "4"]) -
 
 temp.lme=lme(
              Avg_Bearing_Change~Trial_Type,
-             random=~1|OC_ID, 
-             correlation=corAR1(form= ~NewDates|OC_ID),
+             random=~1|OC_ID,
              data=temporary
              )
 
@@ -202,9 +198,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 
 ## Average B-H Diff
 ```{r}
@@ -245,8 +239,7 @@ mean_diff=mean(temporary$Avg_Bearing_vs_Heading_FV[temporary$Trial_Type == "4"])
 
 temp.lme=lme(
              Avg_Bearing_vs_Heading_FV~Trial_Type,
-             random=~1|OC_ID, 
-             correlation=corAR1(form= ~NewDates|OC_ID),
+             random=~1|OC_ID,
              data=temporary
              )
 
@@ -266,9 +259,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 ## Average Change in B-H Diff
 ```{r}
 FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
@@ -392,9 +383,6 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
 
 ## DD, Jetting
 ```{r}
@@ -455,9 +443,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 
 ## Avg Size-corrected Speed, Crawling
 ```{r}
@@ -518,9 +504,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 
 ## Avg Size-corrected Speed, Jetting
 ```{r}
@@ -580,9 +564,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 ## Avg Bearing Change, Crawling
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
@@ -700,9 +682,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 
 ## Avg B-H Diff, Crawling
 ```{r}
@@ -763,9 +743,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 
 ## Avg B-H Diff, Jetting
 ```{r}
@@ -826,9 +804,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 
 ## Avg change in B-H Diff, Crawling
 ```{r}
@@ -889,9 +865,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 
 ## Avg change in B-H Diff, Jetting
 ```{r}
@@ -952,9 +926,7 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
+
 
 ##Duration, crawling
 ```{r}
@@ -1015,24 +987,6 @@ i=i+1
 
 output
 ```
-```{r}
-plot(power~mean_diff,data=output,type="l")
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1059,24 +1013,6 @@ for (i in 1:length(FV_master_set$Trial_Type)){
 }
 print(treat.fvn)
 print(control.fvn)
-```
-
-#PA: n's
-```{r}
-c_n = 0
-t_n = 0
-
-for (i in 1:length(PA_master_set$Trial_Type)){
-  if (PA_master_set$Trial_Type[i] == 4){
-    c_n = c_n + 1
-  }
-  else if (PA_master_set$Trial_Type[i] == 1){
-    t_n = t_n + 1
-  }
-}
-
- control.n = c_n
- treat.n = t_n  
 ```
 
 #Full Video: Duration
@@ -1142,6 +1078,26 @@ control.sd= sd(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type=
 ```{r}
 pwr.t.test(n= 32, d= NULL, sig.level=0.05,power=0.8,type="paired")
 ```
+
+
+#PA: n's
+```{r}
+c_n = 0
+t_n = 0
+
+for (i in 1:length(PA_master_set$Trial_Type)){
+  if (PA_master_set$Trial_Type[i] == 4){
+    c_n = c_n + 1
+  }
+  else if (PA_master_set$Trial_Type[i] == 1){
+    t_n = t_n + 1
+  }
+}
+
+ control.n = c_n
+ treat.n = t_n  
+```
+
 #PA: Bearing Change: Jetting (NO LONGER IN USE)
 ```{r}
  control.sd= sd(PA_master_set$Bearing_Change[PA_master_set$Trial_Type==4 & PA_master_set$Movement_Type==2])

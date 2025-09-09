@@ -14,8 +14,11 @@ library(lattice)
 ```
 
 ```{r}
-WD = "C:\\Users\\Bvipe\\OneDrive - Walla Walla University\\Desktop\\Bowers_2025_Octopus_Vestibular"
+WORKD = "C:\\your_information\\Bowers_2025_Octopus_Vestibular"
+```
 
+#Vector of trial dates
+```{r}
 datelist_u = c("7_24","7_26","7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11","8_13","8_15","8_17")
 ```
 
@@ -24,6 +27,7 @@ datelist_u = c("7_24","7_26","7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11",
 Trial_type_log = read.csv("C:\\Users\\Bvipe\\OneDrive - Walla Walla University\\Desktop\\Bowers_2025_Octopus_Vestibular\\Raw Data\\Trial Type.csv")
 ```
 
+#Create a vector of the file names of full video results data
 ```{r}
 FV_get_file = function(WD,d){ 
   wd = c(WD,"Processed Data","Full Video Results",d)
@@ -35,6 +39,7 @@ FV_get_file = function(WD,d){
 }
 ```
 
+#Create a vector of the file names of path analysis results data
 ```{r}
 PA_get_file = function(WD){ 
   wd = c(WD,"Processed Data\\Path Analysis Results")
@@ -46,30 +51,7 @@ PA_get_file = function(WD){
 }
 ```
 
-```{r}
-FV_get_file_DLC = function(WD,d){ 
-  wd = c(WD,"Processed Data","Full Video Results DLC",d)
-  wd_path = stringr::str_c(wd, collapse = "/")
-  in_files_list = list.files(wd_path, pattern = NULL, all.files = FALSE,
-           full.names = FALSE, recursive = FALSE,
-           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
-  return(in_files_list)
-}
-```
-
-```{r}
-PA_get_file_DLC = function(WD){ 
-  wd = c(WD,"Processed Data\\Path Analysis Results DLC")
-  wd_path = stringr::str_c(wd, collapse = "/")
-  in_files_list = list.files(wd_path, pattern = NULL, all.files = FALSE,
-           full.names = FALSE, recursive = FALSE,
-           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
-  return(in_files_list)
-}
-```
-
-
-#Create a table from the the processed data that makes all effects accessible. FULL VID RESULTS
+#Create a compiled table of all results for each trial/octopus. FULL VID RESULTS
 ```{r}
 Date = c()
 OC_ID = c()
@@ -133,7 +115,7 @@ FV_master_set = data.frame(FV_master_set,NewDates)
 write.csv(FV_master_set,paste0(WD,"\\Processed Data\\FV_Master_Set.csv"))
 ```
 
-#Create a table from the the processed data that makes all effects accessible. PATH ANALYSIS RESULTS
+#Create a compiled table of all results for each trial/octopus. PATH ANALYSIS RESULTS
 ```{r}
 PA_files = PA_get_file(WD)
 Date = c()
@@ -238,6 +220,7 @@ move.chi
 ```
 
 #Avg Directness Difference (movement type 1)
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -247,6 +230,7 @@ bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 
 ```
+#Plotting
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -278,7 +262,6 @@ lines(s_dates_pred,spun_predy)
 
 print(predicted_data)
 ```
-
 ```{r}
 PA_DD_SPUN = (PA_master_set$Avg_Directness_Difference[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
 PA_DD_CONTROL = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
@@ -321,49 +304,8 @@ points(x = Pltx_DD_SPUN_1 ,y = PA_DD_SPUN,col="black")
 
 ```
 
-```{r}
-mean(FV_master_set$Duration[FV_master_set$Trial_Type == "1"])
-mean(FV_master_set$Duration[FV_master_set$Trial_Type == "4"])
-
-mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
-mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"])
-max(FV_master_set$Duration)
-min(FV_master_set$Duration)
-
-mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
-mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"])
-
-mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
-mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
-
-mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
-mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
-```
-
-```{r}
-mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
-mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
-
-mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
-mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
-
-mean(PA_master_set$Duration[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
-mean(PA_master_set$Duration[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
-```
-
-```{r}
-mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "1"])
-mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "4"])
-
-mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "1"])
-mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "4"])
-
-mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
-mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"])
-```
-
-
 #Avg Directness Difference (movement type 2)
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -372,6 +314,7 @@ bearing_change.lme=lme(abs(Avg_Directness_Difference)~Trial_Type*NewDates,random
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -441,7 +384,9 @@ points(x = Pltx_DD_SPUN_2 ,y = PA_DD_SPUN,col="black")
 
 ```
 
+
 #Avg speed per body length, movement type 1
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -450,6 +395,7 @@ bearing_change.lme=lme(abs(Speed_per_Bodylength)~Trial_Type*NewDates,random=~1|O
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -521,8 +467,8 @@ points(x = Pltx_SPB_SPUN_1 ,y = PA_SPB_SPUN,col="black")
 
 ```
 
-
 #Avg speed per body length, movement type 2
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -531,6 +477,7 @@ bearing_change.lme=lme(abs(Speed_per_Bodylength)~Trial_Type*NewDates,random=~1|O
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -601,6 +548,7 @@ points(x = Pltx_SPB_SPUN_2 ,y = PA_SPB_SPUN,col="black")
 ```
 
 #Avg bearing change (movement type 1)
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -610,6 +558,7 @@ bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -643,8 +592,6 @@ lines(s_dates_pred,spun_predy, col = "red",lwd = 1.75)
 
 print(predicted_data)
 ```
-
-
 ```{r}
 PA_BC_SPUN = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
 PA_BC_CONTROL = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
@@ -688,6 +635,7 @@ points(x = Pltx_BC_SPUN_1 ,y = PA_BC_SPUN,col="black")
 ```
 
 #Avg bearing change (movement type 2)
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -697,6 +645,7 @@ bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 
 ```
+#PLOTTING
 ```{r}
 PA_BC_SPUN = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==1])
 PA_BC_CONTROL = (PA_master_set$Bearing_Change[PA_master_set$Movement_Type==2&PA_master_set$Trial_Type==4])
@@ -739,6 +688,7 @@ points(x = Pltx_BC_SPUN_2 ,y = PA_BC_SPUN,col="black")
 
 
 #Avg Bearing vs Heading, movement type == 1
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -747,6 +697,7 @@ bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading)~Trial_Type*NewDates,random=~1
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -844,6 +795,7 @@ histogram(
 
 
 #Avg Bearing vs Heading, movement type == 2
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -852,6 +804,7 @@ bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading)~Trial_Type*NewDates,random=~1
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -922,6 +875,7 @@ points(x = Pltx_BvH_SPUN_2 ,y = PA_BvH_SPUN,col="black")
 ```
 
 #Average Heading vs Bearing Change, Movement Type == 1
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -930,6 +884,7 @@ bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading_Change)~Trial_Type*NewDates,ra
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -1002,6 +957,7 @@ points(x = Pltx_BvHC_SPUN_1 ,y = PA_BvHC_SPUN,col="black")
 
 
 #Average Heading vs Bearing Change, Movement Type == 2
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -1010,6 +966,7 @@ bearing_change.lme=lme(abs(Avg_Bearing_vs_Heading_Change)~Trial_Type*NewDates,ra
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -1082,6 +1039,7 @@ points(x = Pltx_BvHC_SPUN_2 ,y = PA_BvHC_SPUN,col="black")
 
 
 #Duration, Movement Type ==  1
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -1090,6 +1048,7 @@ bearing_change.lme=lme(abs(Duration)~Trial_Type*NewDates,random=~1|OC_ID,
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -1161,6 +1120,7 @@ points(x = Pltx_Duration_SPUN_1 ,y = PA_Duration_SPUN,col="black")
 
 
 #Duration, Movement Type ==  2
+#LME/ANOVA
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
@@ -1169,6 +1129,7 @@ bearing_change.lme=lme(abs(Duration)~Trial_Type*NewDates,random=~1|OC_ID,
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
 ```
+#PLOTTING
 ```{r}
 unique(PA_master_set$Trial_Type)
 
@@ -1913,5 +1874,48 @@ S_mean = mean(S_AVGS)
 
 print(paste0("Unspun Duration: ",U_mean," Spun Duration: ",S_mean))
 print(U_mean - S_mean)
+```
+
+
+#FINDING MEANS FOR FV AND PA DATA
+```{r}
+mean(FV_master_set$Duration[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Duration[FV_master_set$Trial_Type == "4"])
+
+mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"])
+max(FV_master_set$Duration)
+min(FV_master_set$Duration)
+
+mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"])
+
+mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+
+mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+```
+
+```{r}
+mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+
+mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+
+mean(PA_master_set$Duration[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Duration[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+```
+
+```{r}
+mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "4"])
+
+mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "4"])
+
+mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"])
 ```
 
