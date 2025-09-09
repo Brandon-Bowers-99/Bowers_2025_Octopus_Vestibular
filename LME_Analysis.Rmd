@@ -78,6 +78,7 @@ Duration = c()
 Avg_Speed_Per_Bodylength = c()
 Avg_Bearing_Change = c()
 Avg_Bearing_vs_Heading_FV = c()
+Average_Change_Bearing_vs_Heading_FV = c()
 
 for (d in datelist_u){
   FV_files = FV_get_file(WD,d)
@@ -100,7 +101,7 @@ for (d in datelist_u){
     }
 
     #Find average speed/bodylength and append it to master list
-    avg_SPB = sum(curr_data$Speed_per_Bodylength) / length(curr_data$Speed_per_Bodylength)
+    avg_SPB = sum(curr_data$Speed_per_MI) / length(curr_data$Speed_per_MI)
     Avg_Speed_Per_Bodylength = c(Avg_Speed_Per_Bodylength,avg_SPB)
     
     #Find average bearing change
@@ -108,9 +109,13 @@ for (d in datelist_u){
     Avg_Bearing_Change = c(Avg_Bearing_Change,avg_BC)
     
     #Find avg bearing vs heading
-    avg_BvH = sum(curr_data$Bearing_Movedir_Dif) / length(curr_data$Bearing_Movedir_Dif)
+    avg_BvH = sum(curr_data$Bearing_Move_Diff) / length(curr_data$Bearing_Move_Diff)
     Avg_Bearing_vs_Heading_FV = c(Avg_Bearing_vs_Heading_FV,avg_BvH)
     
+    #find avg change in b-h diff
+    avg_CBvH = sum(curr_data$Bearing_Heading_Diff_Change) / length(curr_data$Bearing_Heading_Diff_Change)
+    Average_Change_Bearing_vs_Heading_FV = c(Average_Change_Bearing_vs_Heading_FV,avg_CBvH)
+
     for (t in 1:length(Trial_type_log$Trial.Type)){
       if (Trial_type_log$Date[t] == d & as.character(Trial_type_log$OC_ID[t]) == oc){
         Trial_Type = c(Trial_Type,Trial_type_log$Trial.Type[t])
@@ -122,7 +127,7 @@ for (d in datelist_u){
 dates.ex=strptime(FV_master_set$Date,"%m_%d")
 NewDates = difftime(dates.ex,min(dates.ex),units="day")
 
-FV_master_set = data.frame(Date,OC_ID,Trial_Type, Duration, Avg_Speed_Per_Bodylength,Avg_Bearing_Change,Avg_Bearing_vs_Heading_FV)
+FV_master_set = data.frame(Date,OC_ID,Trial_Type, Duration, Avg_Speed_Per_Bodylength,Avg_Bearing_Change,Avg_Bearing_vs_Heading_FV,Average_Change_Bearing_vs_Heading_FV)
 FV_master_set = data.frame(FV_master_set,NewDates)
 
 write.csv(FV_master_set,paste0(WD,"\\Processed Data\\FV_Master_Set.csv"))
@@ -180,6 +185,22 @@ PA_master_set = data.frame(PA_master_set,NewDates)
 write.csv(PA_master_set,paste0(WD,"\\Processed Data\\PA_Master_Set.csv"))
 ```
 
+#Change radians to degrees
+```{r}
+for (i in 1:length(FV_master_set$Avg_Bearing_Change)){
+  FV_master_set$Avg_Bearing_Change[i] = NISTradianTOdeg(FV_master_set$Avg_Bearing_Change[i])
+  FV_master_set$Avg_Bearing_vs_Heading_FV[i] = NISTradianTOdeg(FV_master_set$Avg_Bearing_vs_Heading_FV[i])
+  FV_master_set$Average_Change_Bearing_vs_Heading_FV[i] = NISTradianTOdeg(FV_master_set$Average_Change_Bearing_vs_Heading_FV[i])
+}
+
+for (j in 1:length(PA_master_set$Bearing_Change)){
+  PA_master_set$Bearing_Change[j] = NISTradianTOdeg(PA_master_set$Bearing_Change[j])
+  PA_master_set$Avg_Bearing_vs_Heading[j] = NISTradianTOdeg(PA_master_set$Avg_Bearing_vs_Heading[j])
+  PA_master_set$Avg_Bearing_vs_Heading_Change[j] = NISTradianTOdeg(PA_master_set$Avg_Bearing_vs_Heading_Change[j])
+  PA_master_set$Avg_Directness_Difference[j] = NISTradianTOdeg(PA_master_set$Avg_Directness_Difference[j])
+}
+```
+
 ########
 #Run mixed effects model#
 ########
@@ -188,6 +209,16 @@ write.csv(PA_master_set,paste0(WD,"\\Processed Data\\PA_Master_Set.csv"))
 ##############################
 
 #Movment type over time
+```{r}
+# Using Chi Square test
+move.tab=table(PA_master_set$Trial_Type,PA_master_set$Movement_Type)
+move.tab
+move.chi=chisq.test(move.tab)
+move.chi
+
+```
+
+
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 PA_master_set$Movement_Type=as.factor(PA_master_set$Movement_Type)
@@ -210,7 +241,7 @@ move.chi
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
 
-bearing_change.lme=lme(abs(Avg_Directness_Difference)~Trial_Type*NewDates,random=~1|OC_ID,
+bearing_change.lme=lme((Avg_Directness_Difference)~Trial_Type*NewDates,random=~1|OC_ID,
                        data=PA_master_set[PA_master_set$Movement_Type==1,])
 bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
 bearing_change.ANOVA
@@ -232,10 +263,13 @@ s_dates_pred = c(0,8)
 plot(abs(Avg_Directness_Difference)~NewDates,
      data=PA_master_set[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4,],
      #log="y",
-     ylim=range(abs(PA_master_set$Avg_Directness_Difference[PA_master_set$Movement_Type==1])),
+     ylim=range(-25,65),
+     xlim = range(0,25),
+     xlab = "Number of days from beggining of trial",
+     ylab = "Degrees"
      pch=21,bg="red"
      )
-points(abs(Avg_Directness_Difference)~NewDates,
+points((Avg_Directness_Difference)~NewDates,
      data=PA_master_set[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1,],
      pch=21,bg="blue")
 
@@ -270,7 +304,8 @@ for (i in 1:length(Pltx_DD_SPUN_1)){
 
 PA_DD_1 = boxplot(PA_DD_CONTROL,PA_DD_SPUN,
 #main = "Average Directness Difference in Crawling Movements",
-ylab = "Radians",
+ylab = "Degrees",
+ylim = range(-150,150),
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -285,6 +320,48 @@ points(x = Pltx_DD_CONTROL_1 ,y = PA_DD_CONTROL,col="black")
 points(x = Pltx_DD_SPUN_1 ,y = PA_DD_SPUN,col="black")
 
 ```
+
+```{r}
+mean(FV_master_set$Duration[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Duration[FV_master_set$Trial_Type == "4"])
+
+mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"])
+max(FV_master_set$Duration)
+min(FV_master_set$Duration)
+
+mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"])
+
+mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Avg_Directness_Difference[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+
+mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+```
+
+```{r}
+mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Speed_per_Bodylength[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+
+mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+
+mean(PA_master_set$Duration[PA_master_set$Trial_Type == "1"& PA_master_set$Movement_Type == "1"])
+mean(PA_master_set$Duration[PA_master_set$Trial_Type == "4" & PA_master_set$Movement_Type == "1"])
+```
+
+```{r}
+mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Avg_Speed_Per_Bodylength[FV_master_set$Trial_Type == "4"])
+
+mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Avg_Bearing_Change[FV_master_set$Trial_Type == "4"])
+
+mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "1"])
+mean(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type == "4"])
+```
+
 
 #Avg Directness Difference (movement type 2)
 ```{r}
@@ -364,7 +441,6 @@ points(x = Pltx_DD_SPUN_2 ,y = PA_DD_SPUN,col="black")
 
 ```
 
-
 #Avg speed per body length, movement type 1
 ```{r}
 PA_master_set$Trial_Type=as.factor(PA_master_set$Trial_Type)
@@ -429,6 +505,7 @@ for (i in 1:length(Pltx_SPB_SPUN_1)){
 boxplot(PA_SPB_CONTROL,PA_SPB_SPUN,
 #main = "Average Speed per Bodylength in Crawling Movements",
 ylab = "Size-corrected speed units",
+ylim = range(0,1.4),
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -550,16 +627,16 @@ plot(Bearing_Change~NewDates,
      data=PA_master_set[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4,],
      #log="y",
      #main = "Duration of Directed movements",
-     ylim=range(0,1.4),
+     ylim=range(-100,100),
      xlim = range(0,25),
-     ylab = "Radians",
-     xlab = "Date",
+     ylab = "Degrees",
+     xlab = "Trial number",
      pch=21,bg="#52c155"
      )
 points(Bearing_Change~NewDates,
      data=PA_master_set[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1,],
      pch=21,bg="#eb3a23")
-legend("top",c("Spun","Control"),fill = c("#eb3a23","#52c155"), cex = 0.45)
+legend("bottom",c("Spun","Control"),fill = c("#eb3a23","#52c155"), cex = 0.55)
 
 lines(u_dates_pred,unspun_predy, col = "#52c155",lwd = 1.75)
 lines(s_dates_pred,spun_predy, col = "red",lwd = 1.75)
@@ -592,7 +669,9 @@ for (i in 1:length(Pltx_BC_SPUN_1)){
 }
 
 boxplot(PA_BC_CONTROL,PA_BC_SPUN,
-ylab = "Radians",
+ylab = "Degrees",
+ylim = range(-180,180),
+yaxp = c(-180,180,9),
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -721,20 +800,46 @@ for (i in 1:length(Pltx_BvH_SPUN_1)){
 
 boxplot(PA_BvH_CONTROL,PA_BvH_SPUN,
 #main = "Average Bearing-Heading Difference in Crawling Movements",
-ylab = "Radians",
+xlab = "Degrees",
+ylim = range(-180,180),
+xaxp = c(-180, 180, 9),
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
 col = c("#C1FFC1","#FFAEB9"),
 border = "black",
-horizontal = FALSE,
+horizontal = TRUE,
 notch = FALSE,
 range = 0
 )
 
-points(x = Pltx_BvH_CONTROL_1 ,y = PA_BvH_CONTROL,col="black")
-points(x = Pltx_BvH_SPUN_1 ,y = PA_BvH_SPUN,col="black")
-
+points(x = PA_BvH_CONTROL ,y = Pltx_BvH_CONTROL_1,col="black")
+points(x = PA_BvH_SPUN ,y = Pltx_BvH_SPUN_1,col="black")
+abline(v = 0, col = 'black', lwd = 2)
+```
+```{r}
+histogram(
+  PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1],
+  allow.multiple,
+  aspect = "fill",
+  xlim = c(-180,180),
+  xlab = "Degrees",
+  ylim = c(0,25),
+  ylab = "Percent of total number of trials",
+  breaks = 10,
+  col = "#FFAEB9")
+```
+```{r}
+histogram(
+  PA_master_set$Avg_Bearing_vs_Heading[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4],
+  allow.multiple,
+  aspect = "fill",
+  xlim = c(-180,180),
+  xlab = "Degrees",
+  ylim = c(0,25),
+  ylab = "Percent of total number of trials",
+  breaks = 10,
+  col = "#C1FFC1")
 ```
 
 
@@ -854,8 +959,8 @@ lines(s_dates_pred,spun_predy)
 print(predicted_data)
 ```
 ```{r}
-PA_BvHC_SPUN = (PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
-PA_BvHC_CONTROL = (PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
+PA_BvHC_SPUN = abs(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==1])
+PA_BvHC_CONTROL = abs(PA_master_set$Avg_Bearing_vs_Heading_Change[PA_master_set$Movement_Type==1&PA_master_set$Trial_Type==4])
 
 PA_BvHC_SPUN_norm <- rnorm(0.25,mean=mean(PA_BvHC_SPUN, na.rm=TRUE), sd=sd(PA_BvHC_SPUN, na.rm=TRUE))
 PA_BvHC_CONTROL_norm <- rnorm(0.25,mean=mean(PA_BvHC_CONTROL, na.rm=TRUE), sd=sd(PA_BvHC_CONTROL, na.rm=TRUE))
@@ -879,7 +984,7 @@ for (i in 1:length(Pltx_BvHC_SPUN_1)){
 
 boxplot(PA_BvHC_CONTROL,PA_BvHC_SPUN,
 #main = "Avg. Change in Bearing-Heading Difference - Crawling",
-ylab = "Radians",
+ylab = "Degrees",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -1296,7 +1401,8 @@ for (i in 1:length(Pltx_SPB_SPUN_FV)){
 
 boxplot(FV_SPB_CONTROL,FV_SPB_SPUN,
 #main = "Duration of Jetting Movements",
-ylab = "Size-corrected units",
+ylab = "Size-corrected speed units",
+ylim = range(0,3),
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -1347,7 +1453,8 @@ for (i in 1:length(Pltx_BC_SPUN_FV)){
 
 boxplot(FV_BC_CONTROL,FV_BC_SPUN,
 #main = "Average BvH",
-ylab = "Radians",
+ylab = "Degrees",
+ylim = range(-180,180),
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -1362,8 +1469,6 @@ points(x = Pltx_BC_CONTROL_FV ,y = FV_BC_CONTROL,col="black")
 points(x = Pltx_BC_SPUN_FV ,y = FV_BC_SPUN,col="black")
 
 ```
-
-
 #Avg Bearing vs heading
 ```{r}
 FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
@@ -1399,7 +1504,158 @@ for (i in 1:length(Pltx_BvH_SPUN_FV)){
 
 boxplot(FV_BvH_CONTROL,FV_BvH_SPUN,
 #main = "Average BvH",
-ylab = "Radians",
+xlab = "Degrees",
+ylim = range(-180,180),
+xaxp = c(-180, 180, 9),
+at = c(1,2),
+names = c("Control", "Spun"),
+las = 2,
+col = c("#C1FFC1","#FFAEB9"),
+border = "black",
+horizontal = TRUE,
+notch = FALSE,
+range = 0
+)
+
+points(x = FV_BvH_CONTROL ,y = Pltx_BvH_CONTROL_FV,col="black")
+points(x = FV_BvH_SPUN ,y = Pltx_BvH_SPUN_FV,col="black")
+abline(v = 0, col = 'black', lwd = 2)
+
+```
+
+#Average Bearing vs heading
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+bearing_change.lme=lme((Avg_Bearing_vs_Heading_FV)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=FV_master_set)
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+```{r}
+FV_BvH_SPUN =(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type==1])
+FV_BvH_CONTROL =(FV_master_set$Avg_Bearing_vs_Heading_FV[FV_master_set$Trial_Type==4])
+
+FV_BvH_SPUN_norm <- rnorm(0.25,mean=mean(FV_BvH_SPUN, na.rm=TRUE), sd=sd(FV_BvH_SPUN, na.rm=TRUE))
+FV_BvH_CONTROL_norm <- rnorm(0.25,mean=mean(FV_BvH_CONTROL, na.rm=TRUE), sd=sd(FV_BvH_CONTROL, na.rm=TRUE))
+
+Pltx_BvH_CONTROL_FV = c()
+Pltx_BvH_SPUN_FV = c()
+for (i in 1:length(FV_BvH_CONTROL)){
+  Pltx_BvH_CONTROL_FV = c(Pltx_BvH_CONTROL_FV,1)
+}
+for (i in 1:length(FV_BvH_SPUN)){
+  Pltx_BvH_SPUN_FV = c(Pltx_BvH_SPUN_FV,2)
+}
+
+for (i in 1:length(Pltx_BvH_CONTROL_FV)){
+  Pltx_BvH_CONTROL_FV[i] = jitter(Pltx_BvH_CONTROL_FV[i],factor = 8)
+}
+for (i in 1:length(Pltx_BvH_SPUN_FV)){
+  Pltx_BvH_SPUN_FV[i] = jitter(Pltx_BvH_SPUN_FV[i],factor = 3)
+}
+
+
+boxplot(FV_BvH_CONTROL,FV_BvH_SPUN,
+#main = "Average BvH",
+xlab = "Degrees",
+ylim = range(-180,180),
+xaxp = c(-180, 180, 9),
+at = c(1,2),
+names = c("Control", "Spun"),
+las = 2,
+col = c("#C1FFC1","#FFAEB9"),
+border = "black",
+horizontal = TRUE,
+notch = FALSE,
+range = 0
+)
+
+points(x = FV_BvH_CONTROL ,y = Pltx_BvH_CONTROL_FV,col="black")
+points(x = FV_BvH_SPUN ,y = Pltx_BvH_SPUN_FV,col="black")
+abline(v = 0, col = 'black', lwd = 2)
+
+```
+
+```{r}
+histogram(
+  FV_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type==1],
+  allow.multiple,
+  aspect = "fill",
+  xlim = c(-180,180),
+  xlab = "Degrees",
+  ylim = c(0,25),
+  ylab = "Percent of total number of trials",
+  breaks = 10,
+  col = "#FFAEB9")
+```
+```{r}
+histogram(
+  FV_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type==4],
+  aspect = "fill",
+  xlim = c(-180,180),
+  xlab = "Degrees",
+  ylim = c(0,25),
+  ylab = "Percent of total number of trials",
+  breaks = 10,
+  col = "#C1FFC1")
+```
+
+```{r}
+histogram(
+  FV_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type==1],
+  allow.multiple,
+  aspect = "fill",
+  xlim = c(-180,180),
+  xlab = "Degrees",
+  ylim = c(0,25),
+  ylab = "Percent of total number of trials",
+  breaks = 10)
+histogram(
+  FV_master_set$Avg_Bearing_vs_Heading[PA_master_set$Trial_Type==4], col= "red",  xlim = c(-180,180),
+  xlab = "Degrees",
+  ylim = c(0,25),
+  ylab = "Percent of total number of trials",
+  breaks = 10, add = TRUE)
+```
+
+
+#Avg change in Bearing vs heading
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+bearing_change.lme=lme((Average_Change_Bearing_vs_Heading_FV)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=FV_master_set)
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+```
+```{r}
+FV_CBvH_SPUN =abs(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type==1])
+FV_CBvH_CONTROL = abs(FV_master_set$Average_Change_Bearing_vs_Heading_FV[FV_master_set$Trial_Type==4])
+
+FV_CBvH_SPUN_norm <- rnorm(0.25,mean=mean(FV_CBvH_SPUN, na.rm=TRUE), sd=sd(FV_CBvH_SPUN, na.rm=TRUE))
+FV_CBvH_CONTROL_norm <- rnorm(0.25,mean=mean(FV_CBvH_CONTROL, na.rm=TRUE), sd=sd(FV_CBvH_CONTROL, na.rm=TRUE))
+
+Pltx_CBvH_CONTROL_FV = c()
+Pltx_CBvH_SPUN_FV = c()
+for (i in 1:length(FV_CBvH_CONTROL)){
+  Pltx_CBvH_CONTROL_FV = c(Pltx_CBvH_CONTROL_FV,1)
+}
+for (i in 1:length(FV_CBvH_SPUN)){
+  Pltx_CBvH_SPUN_FV = c(Pltx_CBvH_SPUN_FV,2)
+}
+
+for (i in 1:length(Pltx_CBvH_CONTROL_FV)){
+  Pltx_CBvH_CONTROL_FV[i] = jitter(Pltx_CBvH_CONTROL_FV[i],factor = 8)
+}
+for (i in 1:length(Pltx_CBvH_SPUN_FV)){
+  Pltx_CBvH_SPUN_FV[i] = jitter(Pltx_CBvH_SPUN_FV[i],factor = 3)
+}
+
+
+boxplot(FV_CBvH_CONTROL,FV_CBvH_SPUN,
+#main = "Average BvH",
+ylab = "Degrees",
 at = c(1,2),
 names = c("Control", "Spun"),
 las = 2,
@@ -1410,12 +1666,86 @@ notch = FALSE,
 range = 0
 )
 
-points(x = Pltx_BvH_CONTROL_FV ,y = FV_BvH_CONTROL,col="black")
-points(x = Pltx_BvH_SPUN_FV ,y = FV_BvH_SPUN,col="black")
+points(x = Pltx_CBvH_CONTROL_FV ,y = FV_CBvH_CONTROL,col="black")
+points(x = Pltx_CBvH_SPUN_FV ,y = FV_CBvH_SPUN,col="black")
 
 ```
 
+```{r}
+FV_master_set$Trial_Type=as.factor(FV_master_set$Trial_Type)
+
+bearing_change.lme=lme((Duration)~Trial_Type*NewDates,random=~1|OC_ID,
+                       data=FV_master_set)
+
+bearing_change.ANOVA=Anova(bearing_change.lme,type="III")
+bearing_change.ANOVA
+#summary(bearing_change.lme)
+#AIC(bearing_change.lme) 
+```
+
+```{r}
+FV_Duration_SPUN = abs(FV_master_set$Duration[FV_master_set$Trial_Type==1])
+FV_Duration_CONTROL = abs(FV_master_set$Duration[FV_master_set$Trial_Type==4])
+
+FV_Duration_SPUN_norm <- rnorm(0.25,mean=mean(FV_Duration_SPUN, na.rm=TRUE), sd=sd(FV_Duration_SPUN, na.rm=TRUE))
+FV_Duration_CONTROL_norm <- rnorm(0.25,mean=mean(FV_Duration_CONTROL, na.rm=TRUE), sd=sd(FV_Duration_CONTROL, na.rm=TRUE))
+
+Pltx_Duration_CONTROL_FV = c()
+Pltx_Duration_SPUN_FV = c()
+for (i in 1:length(FV_Duration_CONTROL)){
+  Pltx_Duration_CONTROL_FV = c(Pltx_Duration_CONTROL_FV,1)
+}
+for (i in 1:length(FV_Duration_SPUN)){
+  Pltx_Duration_SPUN_FV = c(Pltx_Duration_SPUN_FV,2)
+}
+
+for (i in 1:length(Pltx_Duration_CONTROL_FV)){
+  Pltx_Duration_CONTROL_FV[i] = jitter(Pltx_Duration_CONTROL_FV[i],factor = 8)
+}
+for (i in 1:length(Pltx_Duration_SPUN_FV)){
+  Pltx_Duration_SPUN_FV[i] = jitter(Pltx_Duration_SPUN_FV[i],factor = 3)
+}
+
+boxplot(FV_Duration_CONTROL,FV_Duration_SPUN,
+#main = "Duration of Jetting Movements",
+ylab = "Seconds",
+at = c(1,2),
+names = c("Control", "Spun"),
+las = 2,
+col = c("#C1FFC1","#FFAEB9"),
+border = "black",
+horizontal = FALSE,
+notch = FALSE,
+range = 0
+)
+
+points(x = Pltx_Duration_CONTROL_FV ,y = FV_Duration_CONTROL,col="black")
+points(x = Pltx_Duration_SPUN_FV ,y = FV_Duration_SPUN,col="black")
+
+```
+
+
 #CRAB CATCHING SUCCESS Analysis
+```{r}
+# Using Chi Square test
+##Remove trials where video was lost
+
+TTF = c()
+CCF = c()
+for (i in 1:length(Trial_type_log$Trial.Type)){
+  if (Trial_type_log$Crab.Caught.[i] == "0" | Trial_type_log$Crab.Caught.[i] == "1"){
+    TTF = c(TTF,Trial_type_log$Trial.Type[i])
+    CCF = c(CCF,Trial_type_log$Crab.Caught.[i])
+  }
+}
+
+crab_caught.tab = table(TTF,CCF)
+crab_caught.tab
+crab_caught.chi=chisq.test(crab_caught.tab)
+crab_caught.chi
+
+```
+
 ```{r}
 Trial_type_log$Trial.Type=as.factor(Trial_type_log$Trial.Type)
 Trial_type_log$Crab.Caught.=as.factor(Trial_type_log$Crab.Caught.)
@@ -1427,6 +1757,7 @@ catch.lme = glmer(Crab.Caught. ~ Trial.Type * Cor_Dates + (1 | OC_ID), data = Tr
 catch.ANOVA=Anova(bearing_change.lme,type="III")
 catch.ANOVA
 ```
+
 #Porportion of sucesses to failures boxplot
 ```{r}
 treatment_success = 0
@@ -1540,9 +1871,47 @@ S_mean = mean(S_AVGS)
 
 print(paste0("Unspun Average Speed per Bodylength: ",U_mean," Spun Average Speed per Bodylength: ",S_mean))
 ```
-
-#Path analysis: Avg Bearing vs Heading Movement type 2 (Jetting): Over time
+#Full video: Avg Bearing Heading Diff
 ```{r}
 
+U_AVGS = c()
+S_AVGS = c()
+
+for (ro in 1:length(FV_master_set$Avg_Bearing_vs_Heading_FV)){
+  if (FV_master_set$Trial_Type[ro] == "1"){
+    S_AVGS = c(S_AVGS, FV_master_set$Avg_Bearing_vs_Heading_FV[ro])
+  }
+  else if (FV_master_set$Trial_Type[ro] == "4"){
+    U_AVGS = c(U_AVGS, FV_master_set$Avg_Bearing_vs_Heading_FV[ro])
+  }
+}
+
+U_mean = mean(U_AVGS)
+S_mean = mean(S_AVGS)
+
+print(paste0("Unspun Average BvH: ",U_mean," Spun Average BvH: ",S_mean))
+print(U_mean - S_mean)
+```
+
+#PA: Duration Jetting
+```{r}
+
+U_AVGS = c()
+S_AVGS = c()
+
+for (ro in 1:length(PA_master_set$Duration)){
+  if (PA_master_set$Trial_Type[ro] == "1"){
+    S_AVGS = c(S_AVGS, PA_master_set$Duration[ro])
+  }
+  else if (PA_master_set$Trial_Type[ro] == "4"){
+    U_AVGS = c(U_AVGS, PA_master_set$Duration[ro])
+  }
+}
+
+U_mean = mean(U_AVGS)
+S_mean = mean(S_AVGS)
+
+print(paste0("Unspun Duration: ",U_mean," Spun Duration: ",S_mean))
+print(U_mean - S_mean)
 ```
 
