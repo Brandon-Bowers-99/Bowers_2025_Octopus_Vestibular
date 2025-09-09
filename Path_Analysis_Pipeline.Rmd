@@ -8,8 +8,8 @@ output: html_document
 library (glue)
 library (stringr)
 library(vroom)
-library(ggplot2)
 library(gtools)
+library(NISTunits)
 ```
 
 #SET LOCATION OF DATA HERE
@@ -63,6 +63,7 @@ carap_coors = function(dat_tab){
   return(carap_cent_10f)
 }
 ```
+
 
 #PATH ANALYSIS
 -----------------------------------------------------------------------------------------------------------------------------------------------------

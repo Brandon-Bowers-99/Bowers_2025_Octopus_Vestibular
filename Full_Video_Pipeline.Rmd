@@ -166,6 +166,7 @@ bearing_change = function(bearing_vecs){
     #print(bearing_vecs$angles[i+1])
     print(bearing_vecs$eye_bar_perp_vecy[i+1] - bearing_vecs$eye_bar_perp_vecy[i])
     print(angle_dif)
+    print(abs(angle_dif))
     
     if (abs(angle_dif) > pi){
       if (angle_dif >= 0){
@@ -259,7 +260,7 @@ main_loop = function(DATE,WORKD){
   
     coor_temp = oc_organize_coordinates(raw_csv)
     
-    bearing_vecs = oc_stat_bearing(coor_temp)  #HOW TO DEAL WITH GAPS OF MISSING FRAMES
+    bearing_vecs = oc_stat_bearing(coor_temp) 
     
     b_change = bearing_change(bearing_vecs)
     
@@ -300,5 +301,86 @@ for (i in 1:length(datelist_u)){
 ```
 
 
+
+##Calculating average change in bearing-heading difference##
+
+
+#OCTOPUS Get files
+```{r}
+oc_get_file_proc = function(WD,folder_date){ 
+  wd = c(WD,"\\Processed Data\\Full Video Results",folder_date)
+  wd_path = stringr::str_c(wd, collapse = "\\")
+  in_files_list = list.files(wd_path, pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+  return(in_files_list)
+}
+```
+
+#Read files
+```{r}
+oc_read_file_proc = function(WD,folder_date,f){
+  wd = c(WD,"\\Processed Data\\Full Video Results\\",folder_date,"\\",f)
+  fullpath = stringr::str_c(wd, collapse = "")
+  dat_tab = read.csv(fullpath, stringsAsFactors=FALSE)
+  C_S_V = dat_tab
+  return(dat_tab)
+}
+```
+
+```{r}
+ABHC = function(WD,DATE){
+  fi_list = oc_get_file_proc(WD,DATE)
+  for (fi in fi_list){
+    dat_tab = oc_read_file_proc(WD,DATE,fi)
+    print(fi)
+
+    #Calculate change in B-H diff
+    #NOTE: This adds a "0" as the first value of the column to keep length in the data, exclude when analyzing
+    Bearing_Heading_Diff_Change = c(0)
+    for (j in 1:(length(dat_tab$Bearing_Movedir_Dif)-1)){
+      change = dat_tab$Bearing_Movedir_Dif[j+1] - dat_tab$Bearing_Movedir_Dif[j]
+      Bearing_Heading_Diff_Change = c(Bearing_Heading_Diff_Change, change)
+    }
+    
+    Bearing_Change = c(dat_tab$Bearing_Change)
+    Move_Dir = c(dat_tab$Move_Dir)
+    Bearing_Move_Diff = c(dat_tab$Bearing_Movedir_Dif)
+    Speed_Pixels = c(dat_tab$Speed_Pixels)
+    Speed_per_MI = c(dat_tab$Speed_per_Bodylength)
+    
+    print(paste(length(Bearing_Change), length(Move_Dir), length(Bearing_Move_Diff), length(Speed_Pixels), length(Speed_per_MI)))
+    
+    NewProcessed = data.frame(Move_Dir,Bearing_Change,Bearing_Move_Diff,Bearing_Heading_Diff_Change,Speed_Pixels,Speed_per_MI)
+  
+    write.csv(NewProcessed,paste0(WORKD,"\\Processed Data\\Full Video Results\\",DATE,"\\",fi))
+  }
+}
+```
+
+```{r}
+datelist_u_minus = c("7_28","7_30","8_1","8_3","8_5","8_7","8_9","8_11","8_13","8_15","8_17")
+```
+
+
+```{r}
+for (d in datelist_u_minus){
+  ABHC(WD,d)
+}
+```
+
+```{r}
+filless = oc_get_file(WD,"7_24")
+examp = oc_read_file(WD,"7_24",filless[1])
+examp = 
+framms = examp$X.1
+for (i in 1:length(framms)){
+  fra = str_split_1(framms[i],".jpg")
+  framms[i] = fra[1]
+  print(framms[i])
+}
+examp$X.1 = framms
+examp = examp[order(as.numeric(examp$X.1)),]
+```
 
 
